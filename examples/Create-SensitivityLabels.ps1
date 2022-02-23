@@ -36,7 +36,6 @@ Try {
 # Connect to EXO and SCC via certificate and app registration. Discnnect any existing sessions for good measure.
 Assert-ServiceConnection -CertificateThumbprint $certificateThumbprint -AppId $appId -Tenant $tenant
 
-<#
 # Enumerate the configuration and provision/configure the sensitivty labels.
 foreach ($label in $labels) {
     Assert-EPMSLabel `
@@ -55,7 +54,6 @@ foreach ($label in $labels) {
             -HeaderRegex $label.HeaderRegex 
     }
 }
-#>
 
 # Create the ETR. 
 Assert-DecryptionTransportRule -DisplayName 'EPMS - Strip encryption for outgoing emails and attachments' -TrustedDomains $authorisedDomains

@@ -72,6 +72,35 @@ function Assert-EPMSLabel {
         }
 }
 
+function Assert-DecryptionTransportRule {
+    param(
+        [string]
+        $DisplayName,
+        [string[]]
+        $TrustedDomains
+    )
+
+    If (Get-TransportRule -Identity $DisplayName) {
+        Write-Host "Transport rule '$DisplayName' exists, updating."
+        Set-TransportRule `
+            -Identity $DisplayName `
+            -FromScope 'InOrganization' `
+            -RecipientDomainIs $TrustedDomains `
+            -RemoveOMEv2 $true `
+            -RemoveRMSAttachmentEncryption $true                
+    } else {
+        Write-Host "Creating new transport rule '$DisplayName'."
+        New-TransportRule `
+            -Name $DisplayName `
+            -FromScope 'InOrganization' `
+            -RecipientDomainIs $TrustedDomains `
+            -RemoveOMEv2 $true `
+            -RemoveRMSAttachmentEncryption $true    
+    }
+}
+
+
+
 function Remove-EPMSLabel {
     param(
         [string] $DisplayName,

@@ -27,7 +27,7 @@ function Assert-ServiceConnection {
         Write-Host "Establishing connection to '$Tenant' via certificate '$CertificateThumbprint' and app registration '$AppId'."
 
         # Connect EOL
-        # Connect-ExchangeOnline -CertificateThumbprint $CertificateThumbprint -AppID $AppId -Organization $Tenant -ShowBanner:$false -ShowProgress:$false
+        Connect-ExchangeOnline -CertificateThumbprint $CertificateThumbprint -AppID $AppId -Organization $Tenant -ShowBanner:$false -ShowProgress:$false
 
         # Connect SCC, https://github.com/MicrosoftDocs/office-docs-powershell/issues/6716
         Connect-ExchangeOnline -CertificateThumbprint $CertificateThumbprint -AppID $AppId -Organization $Tenant -ShowBanner:$false -ShowProgress:$false -ConnectionURI "https://ps.compliance.protection.outlook.com/powershell-liveid/"
@@ -156,7 +156,7 @@ function Assert-DecryptionTransportRule {
         $TrustedDomains
     )
 
-    If (Get-TransportRule -Identity $DisplayName) {
+    If (Get-TransportRule -Identity $DisplayName -ErrorAction SilentlyContinue) {
         Write-Host "Transport rule '$DisplayName' exists, updating."
         Set-TransportRule `
             -Identity $DisplayName `

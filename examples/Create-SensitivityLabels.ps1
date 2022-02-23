@@ -28,6 +28,7 @@ param (
 Try {
     . .\_functions.ps1
     . .\_labels.ps1
+    . .\_domains.ps1    
 } Catch {
     Throw 'Could not import pre-requisites ($_.Exception).'
 }
@@ -35,6 +36,7 @@ Try {
 # Connect to EXO and SCC via certificate and app registration. Discnnect any existing sessions for good measure.
 Assert-ServiceConnection -CertificateThumbprint $certificateThumbprint -AppId $appId -Tenant $tenant
 
+<#
 # Enumerate the configuration and provision/configure the sensitivty labels.
 foreach ($label in $labels) {
     Assert-EPMSLabel `
@@ -53,10 +55,10 @@ foreach ($label in $labels) {
             -HeaderRegex $label.HeaderRegex 
     }
 }
+#>
 
-# Create the ETR. Add domains into here as required.
-#$authorisedDomains = @('contoso-1.gov.au', 'contoso-2.gov.au')
-#Assert-DecryptionTransportRule -DisplayName 'EPMS - Strip encryption for outgoing emails and attachments' -TrustedDestinations $authorisedDomains
+# Create the ETR. 
+Assert-DecryptionTransportRule -DisplayName 'EPMS - Strip encryption for outgoing emails and attachments' -TrustedDomains $authorisedDomains
 
 # Disconnect!
 Assert-ServiceConnection -Disconnect

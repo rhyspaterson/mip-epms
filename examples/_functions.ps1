@@ -7,36 +7,35 @@ function Assert-ServiceConnection {
         [switch] $Disconnect
     )
 
-    if ($disconnect) { 
-        Disconnect-ExchangeOnline -Confirm:$false -InformationAction Ignore 
-    } else {
+    Write-Host "Removing any existing Exchange Online connections."
 
-        # Requires WinRM basic configuration enabled on the client
-        # Assumes Windows currently
-        if (-not (Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client' -Name 'AllowBasic')) {
-            throw "WinRM based auth is not configured."
-        }
+    Disconnect-ExchangeOnline -Confirm:$false -InformationAction Ignore -ErrorAction SilentlyContinue
 
-        try {
+    if ($disconnect) { return }
 
-            Import-Module ExchangeOnlineManagement -ErrorAction Stop
-
-            Write-Host "Removing any existing Exchange Online connections."
-
-            Disconnect-ExchangeOnline -Confirm:$false -InformationAction Ignore -ErrorAction SilentlyContinue
-
-            Write-Host "Establishing connection to '$Tenant' via certificate '$CertificateThumbprint' and app registration '$AppId'."
-
-            # Connect EOL
-            Connect-ExchangeOnline -CertificateThumbprint $CertificateThumbprint -AppID $AppId -Organization $Tenant -ShowBanner:$false -ShowProgress:$false
-
-            # Connect SCC, https://github.com/MicrosoftDocs/office-docs-powershell/issues/6716
-            Connect-ExchangeOnline -CertificateThumbprint $CertificateThumbprint -AppID $AppId -Organization $Tenant -ShowBanner:$false -ShowProgress:$false -ConnectionURI "https://ps.compliance.protection.outlook.com/powershell-liveid/"
-
-        } catch {
-            throw "Failed to connect to Exchange Online and the SCC ($_.Exception)"
-        }
+    # Requires WinRM basic configuration enabled on the client, assumes Windows currently
+    if (-not (Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client' -Name 'AllowBasic')) {
+        throw "WinRM based auth is not configured."
     }
+
+    Disconnect-ExchangeOnline -Confirm:$false -InformationAction Ignore -ErrorAction SilentlyContinue
+
+    try {
+
+        Import-Module ExchangeOnlineManagement -ErrorAction Stop
+
+        Write-Host "Establishing connection to '$Tenant' via certificate '$CertificateThumbprint' and app registration '$AppId'."
+
+        # Connect EOL
+        Connect-ExchangeOnline -CertificateThumbprint $CertificateThumbprint -AppID $AppId -Organization $Tenant -ShowBanner:$false -ShowProgress:$false
+
+        # Connect SCC, https://github.com/MicrosoftDocs/office-docs-powershell/issues/6716
+        Connect-ExchangeOnline -CertificateThumbprint $CertificateThumbprint -AppID $AppId -Organization $Tenant -ShowBanner:$false -ShowProgress:$false -ConnectionURI "https://ps.compliance.protection.outlook.com/powershell-liveid/"
+
+    } catch {
+        throw "Failed to connect to Exchange Online and the SCC ($_.Exception)"
+    }
+
 }
 function Assert-EPMSLabel {
     param(
@@ -48,11 +47,14 @@ function Assert-EPMSLabel {
 
         # Check for existance.
         if ($label = Get-Label | Where-Object { ($_.DisplayName -eq $DisplayName) -and ($_.Mode -ne 'PendingDeletion') }) {
-            Throw "Label '$DisplayName' already exists."
+            Write-Warning "Existing label '$DisplayName' detected. Skipping modifications."
+            return
         }
         
         # If it's a parent label for visual purposes only, configure the essentials.
         if ($IsParet) {
+
+            Write-Host "Creating parent label '$displayName'" 
 
             $label = New-Label `
                 -DisplayName $DisplayName `
@@ -62,6 +64,8 @@ function Assert-EPMSLabel {
 
         } else {
             
+            Write-Host "Creating functional label '$displayName'"
+
             # Configure a fully fledged label.
             $label = New-Label `
                 -DisplayName $DisplayName `
@@ -78,14 +82,50 @@ function Assert-EPMSLabel {
         
         }
 
-        Write-Host "Created label $($label.Name) with display name '$displayName'"
-
         if ($ParentLabelDisplayName) {
             $parentLabel = Get-Label | Where-Object { ($_.DisplayName -eq $ParentLabelDisplayName) -and ($_.Mode -ne 'PendingDeletion') }
             Write-Host "Set parent label for '$($label.displayName)' to '$($parentLabel.displayName)'"
             
             Set-Label -Identity $($label.Guid) -ParentId $parentLabel.Guid
         }
+}
+
+
+function Assert-AutoSensitivityLabelPolicyAndRule {
+    param(
+        [string]$Identifier,
+        [string]$LabelDisplayName,
+        [string]$HeaderRegex
+    )
+    
+    Write-Host "Configuring auto-labeling for '$($LabelDisplayName)'."
+
+    # Check for existance
+    $deployedLabel = Get-Label | Where-Object { ($_.DisplayName -eq $LabelDisplayName) -and ($_.Mode -ne 'PendingDeletion') }
+            
+    if (-not($deployedLabel)) {
+        Throw "Could not get the deployed label details."
+    }
+
+    $policyName = "Auto-label '$($Identifier)' mail" # 64 characters, max
+    $ruleName = "Detect x-header for '$($Identifier)'" # 64 characters, max    
+
+    Write-Host "Creating auto-labeling policy: $policyName"
+
+    New-AutoSensitivityLabelPolicy `
+        -Name $policyName `
+        -ApplySensitivityLabel $deployedLabel.Guid `
+        -ExchangeLocation 'All' `
+        -Mode 'TestWithoutNotifications' `
+        -OverwriteLabel $true              
+
+    Write-Host "Creating auto-labeling policy rule: $ruleName"
+
+    New-AutoSensitivityLabelRule `
+        -Name $ruleName `
+        -HeaderMatchesPatterns @{"x-protective-marking" =  $HeaderRegex} `
+        -Workload "Exchange" `
+        -Policy "$policyName"
 }
 
 function Assert-DecryptionTransportRule {
@@ -116,24 +156,22 @@ function Assert-DecryptionTransportRule {
 }
 
 
+# Wild, be careful.
+function Remove-AllLabelsAndPolicies {
 
-function Remove-EPMSLabel {
-    param(
-        [string] $DisplayName,
-        [switch] $IncludeAll
-    )
-
-    if ($IncludeAll) {
-        $labels = Get-Label | Where-Object { $_.mode -ne 'PendingDeletion' }
-        if ($labels) {
-            Write-Warning "Removing all $($labels.Count) labels"
-            $labels | Remove-Label -Confirm:$true
-        } else {
-            Write-Host "No labels to delete."
-        }
-        
+    $policies = Get-AutoSensitivityLabelPolicy | Where-Object { $_.mode -ne 'PendingDeletion' }
+    if ($policies) {
+        Write-Warning "Removing all $($policies.Count) policies"
+        $policies | Remove-AutoSensitivityLabelPolicy -Confirm:$true
     } else {
-        $label = Get-Label | Where-Object { $_.DisplayName -eq $DisplayName}
-        Remove-Label -Identity $label.Guid -Force
-    }    
+        Write-Host "No policies to delete."
+    }
+
+    $labels = Get-Label | Where-Object { $_.mode -ne 'PendingDeletion' }
+    if ($labels) {
+        Write-Warning "Removing all $($labels.Count) labels"
+        $labels | Remove-Label -Confirm:$true
+    } else {
+        Write-Host "No labels to delete."
+    }  
 }

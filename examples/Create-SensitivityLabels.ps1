@@ -27,20 +27,31 @@ param (
 # Import our common functions.
 Try {
     . .\_functions.ps1
+    . .\_labels.ps1
 } Catch {
-    Throw 'Could not import _functions.ps1.'
+    Throw 'Could not import pre-requisites ($_.Exception).'
 }
 
 # Connect to EXO and SCC via certificate and app registration. Discnnect any existing sessions for good measure.
 Assert-ServiceConnection -CertificateThumbprint $certificateThumbprint -AppId $appId -Tenant $tenant
 
-# Provision our labels.
-Assert-EPMSLabel -DisplayName "UNOFFICIAL" -Tooltip "No damage. This information does not form part of official duty."
-Assert-EPMSLabel -DisplayName "OFFICIAL [Parent]" -Tooltip "Parent." -IsParent
-Assert-EPMSLabel -DisplayName "OFFICIAL" -Tooltip "No or insignificant damage. This is the majority of routine information." -ParentLabelDisplayName "OFFICIAL [Parent]"
-Assert-EPMSLabel -DisplayName "OFFICIAL - Sensitive" -Tooltip "Limited damage to an individual, organisation or government generally if compromised." -ParentLabelDisplayName "OFFICIAL [Parent]"
-Assert-EPMSLabel -DisplayName "PROTECTED [Parent]" -Tooltip "Parent." -IsParent
-Assert-EPMSLabel -DisplayName "PROTECTED" -Tooltip "Damage to the national interest, organisations or individuals." -ParentLabelDisplayName "PROTECTED [Parent]"
+foreach ($label in $labels) {
+    
+    # Create the sensitivty labels
+    Assert-EPMSLabel `
+        -DisplayName $label.LabelDisplayName `
+        -Tooltip $label.Tooltip `
+        -IsParent $label.IsParent `
+        -ParentLabelDisplayName $label.ParentLabel
+
+    if (-not($label.IsParent)) {
+        # Create the matching auto-labeling policies
+        Assert-AutoSensitivityLabelPolicyAndRule `
+            -Identifier $label.Identifier `
+            -LabelDisplayName $label.LabelDisplayName `
+            -HeaderRegex $label.HeaderRegex 
+    }
+}
 
 # Disconnect!
 Assert-ServiceConnection -Disconnect

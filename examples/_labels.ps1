@@ -11,12 +11,13 @@ $labels = [PSCustomObject]@(
         Tooltip             = "No damage. This information does not form part of official duty."
         HeaderRegex         = "(?im)sec=unofficial\u002C"
         HeaderExample       = "VER=2018.3, NS=gov.au, SEC=UNOFFICIAL, ORIGIN=jane.doe@contoso.gov.au"
+        Hierarchy           = "Root"
     }
     [PSCustomObject]@{
         Identifier          = "official-parent"
         LabelDisplayName    = "OFFICIAL [Parent]"
         Tooltip             = "Parent label for visual purposes."
-        IsParent            = $true
+        Hierarchy           = "IsParent"
     }     
     [PSCustomObject]@{
         Identifier          = "official"
@@ -24,7 +25,8 @@ $labels = [PSCustomObject]@(
         Tooltip             = "No or insignificant damage. This is the majority of routine information."
         HeaderRegex         = "(?im)(sec=official)(?!:sensitive)"
         HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL, ORIGIN=jane.doe@contoso.gov.au"
-        ParentLabel         = "official-parent"
+        ParentLabel         = "OFFICIAL [Parent]"
+        Hierarchy           = "HasParent"
     }    
     [PSCustomObject]@{
         Identifier          = 'official-sensitive'
@@ -32,7 +34,8 @@ $labels = [PSCustomObject]@(
         Tooltip             = "Limited damage to an individual, organisation or government generally if compromised."
         HeaderRegex         = "(?im)(sec=official:sensitive)(?!\u002C\saccess)"   
         HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ORIGIN=jane.doe@contoso.gov.au"
-        ParentLabel         = "official"
+        ParentLabel         = "OFFICIAL [Parent]"
+        Hierarchy           = "HasParent"
     } 
     [PSCustomObject]@{
         Identifier          = 'official-sensitive-legal-privilege'
@@ -40,7 +43,8 @@ $labels = [PSCustomObject]@(
         Tooltip             = "TBC"
         HeaderRegex         = "(?im)(sec=official:sensitive\u002C\saccess=legal-privilege)"
         HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Legal-Privilege, ORIGIN=jane.doe@contoso.gov.au"
-        ParentLabel         = "official"
+        ParentLabel         = "OFFICIAL [Parent]"
+        Hierarchy           = "HasParent"
     }  
     [PSCustomObject]@{
         Identifier          = 'official-sensitive-personal-privacy'
@@ -48,13 +52,14 @@ $labels = [PSCustomObject]@(
         Tooltip             = "TBC"
         HeaderRegex         = "(?im)(sec=official:sensitive\u002C\saccess=personal-privacy)"
         HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Personal-Privacy, ORIGIN=jane.doe@contoso.gov.au"
-        ParentLabel         = "official"
+        ParentLabel         = "OFFICIAL [Parent]"
+        Hierarchy           = "HasParent"
     }
     [PSCustomObject]@{
         Identifier          = 'protected-parent'
         LabelDisplayName    = "PROTECTED [Parent]"
         Tooltip             = "Parent label for visual purposes."
-        IsParent            = $true
+        Hierarchy           = "IsParent"
     }     
     [PSCustomObject]@{
         Identifier          = 'protected'
@@ -62,5 +67,7 @@ $labels = [PSCustomObject]@(
         Tooltip             = "Damage to the national interest, organisations or individuals."
         HeaderRegex         = "(?im)(sec=protected)(?!\u002C\saccess)"
         HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ORIGIN=jane.doe@contoso.gov.au"
+        ParentLabel         = "PROTECTED [Parent]"
+        Hierarchy           = "HasParent"
     }        
 )

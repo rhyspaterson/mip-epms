@@ -27,7 +27,7 @@ function Assert-ServiceConnection {
         Write-Host "Establishing connection to '$Tenant' via certificate '$CertificateThumbprint' and app registration '$AppId'."
 
         # Connect EOL
-        Connect-ExchangeOnline -CertificateThumbprint $CertificateThumbprint -AppID $AppId -Organization $Tenant -ShowBanner:$false -ShowProgress:$false
+        # Connect-ExchangeOnline -CertificateThumbprint $CertificateThumbprint -AppID $AppId -Organization $Tenant -ShowBanner:$false -ShowProgress:$false
 
         # Connect SCC, https://github.com/MicrosoftDocs/office-docs-powershell/issues/6716
         Connect-ExchangeOnline -CertificateThumbprint $CertificateThumbprint -AppID $AppId -Organization $Tenant -ShowBanner:$false -ShowProgress:$false -ConnectionURI "https://ps.compliance.protection.outlook.com/powershell-liveid/"
@@ -41,53 +41,53 @@ function Assert-EPMSLabel {
     param(
         [string] $DisplayName,
         [string] $Tooltip,
-        [string] $ParentLabelDisplayName,
-        [switch] $IsParet
+        [string] $Hierarchy,
+        [string] $ParentLabelDisplayName
       )
+    # Check for existance.
+    if ($label = Get-Label | Where-Object { ($_.DisplayName -eq $DisplayName) -and ($_.Mode -ne 'PendingDeletion') }) {
+        Write-Warning "Existing label '$DisplayName' detected. Skipping modifications."
+        return
+    }
 
-        # Check for existance.
-        if ($label = Get-Label | Where-Object { ($_.DisplayName -eq $DisplayName) -and ($_.Mode -ne 'PendingDeletion') }) {
-            Write-Warning "Existing label '$DisplayName' detected. Skipping modifications."
-            return
-        }
+    # If it's a parent label for visual purposes only, configure the essentials.
+    if ($Hierarchy -eq 'IsParent') {
+       
+        Write-Host "Creating parent label '$DisplayName'" 
+
+        $label = New-Label `
+            -DisplayName $DisplayName `
+            -Name $(New-Guid) `
+            -Comment 'Provides EPMS support in Microsoft 365' `
+            -Tooltip $Tooltip `
+            -ContentType 'File, Email, Site, UnifiedGroup, PurviewAssets'            
+
+    # Else it's in the root with no parent or is a child label with a parent, so configure a full label.
+    } else {
         
-        # If it's a parent label for visual purposes only, configure the essentials.
-        if ($IsParet) {
+        Write-Host "Creating root or child label '$DisplayName'"
 
-            Write-Host "Creating parent label '$displayName'" 
+        # Configure a fully fledged label.
+        $label = New-Label `
+            -DisplayName $DisplayName `
+            -Name $(New-Guid) `
+            -Comment 'Provides EPMS support in Microsoft 365' `
+            -Tooltip $Tooltip `
+            -ApplyContentMarkingFooterEnabled $true `
+            -ApplyContentMarkingFooterAlignment 'Center' `
+            -ApplyContentMarkingFooterText $DisplayName `
+            -ApplyContentMarkingHeaderEnabled $true `
+            -ApplyContentMarkingHeaderAlignment 'Center' `
+            -ApplyContentMarkingHeaderText $DisplayName `
+            -ContentType 'File, Email, Site, UnifiedGroup, PurviewAssets'
+    }
 
-            $label = New-Label `
-                -DisplayName $DisplayName `
-                -Name $(New-Guid) `
-                -Comment 'Provides EPMS support in Microsoft 365' `
-                -ContentType 'File, Email, Site, UnifiedGroup, PurviewAssets'            
-
-        } else {
-            
-            Write-Host "Creating functional label '$displayName'"
-
-            # Configure a fully fledged label.
-            $label = New-Label `
-                -DisplayName $DisplayName `
-                -Name $(New-Guid) `
-                -Comment 'Provides EPMS support in Microsoft 365' `
-                -Tooltip $Tooltip `
-                -ApplyContentMarkingFooterEnabled $true `
-                -ApplyContentMarkingFooterAlignment 'Center' `
-                -ApplyContentMarkingFooterText $DisplayName `
-                -ApplyContentMarkingHeaderEnabled $true `
-                -ApplyContentMarkingHeaderAlignment 'Center' `
-                -ApplyContentMarkingHeaderText $DisplayName `
-                -ContentType 'File, Email, Site, UnifiedGroup, PurviewAssets'
-        
-        }
-
-        if ($ParentLabelDisplayName) {
-            $parentLabel = Get-Label | Where-Object { ($_.DisplayName -eq $ParentLabelDisplayName) -and ($_.Mode -ne 'PendingDeletion') }
-            Write-Host "Set parent label for '$($label.displayName)' to '$($parentLabel.displayName)'"
-            
-            Set-Label -Identity $($label.Guid) -ParentId $parentLabel.Guid
-        }
+    # Finally, assign a parent label to the child, if required.
+    if ($Hierarchy -eq 'HasParent') {
+        Write-Host "`tSetting parent label for '$($label.displayName)' to '$($ParentLabelDisplayName)'"
+        $parentLabel = Get-Label | Where-Object { ($_.DisplayName -eq $ParentLabelDisplayName) -and ($_.Mode -ne 'PendingDeletion') }
+        Set-Label -Identity $($label.Guid) -ParentId $parentLabel.Guid
+    }
 }
 
 
@@ -100,7 +100,7 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
     
     Write-Host "Configuring auto-labeling for '$($LabelDisplayName)'."
 
-    # Check for existance
+    # Ensure the sensitivity label we are linking the policy to exists.
     $deployedLabel = Get-Label | Where-Object { ($_.DisplayName -eq $LabelDisplayName) -and ($_.Mode -ne 'PendingDeletion') }
             
     if (-not($deployedLabel)) {
@@ -110,18 +110,38 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
     $policyName = "Auto-label '$($Identifier)' mail" # 64 characters, max
     $ruleName = "Detect x-header for '$($Identifier)'" # 64 characters, max    
 
-    Write-Host "Creating auto-labeling policy: $policyName"
+    # Check if the auto-labeling policy already exists, updating if it so.    
+    if($policy = Get-AutoSensitivityLabelPolicy | Where-Object { ($_.Name -eq $policyName) }) {
+        if ($policy.Mode -eq 'PendingDeletion') {
+            Write-Warning "`tAuto-labeling policy '$policyName' exists in a pending deletion state. Cannot update."
+            return
+        } else {
+            Write-Host "`tAuto-labeling policy '$policyName' exists, updating."
+            Set-AutoSensitivityLabelPolicy `
+                -Identity $policyName `
+                -ApplySensitivityLabel $deployedLabel.Guid `
+                -AddExchangeLocation 'All' `
+                -Mode 'TestWithoutNotifications' `
+                -OverwriteLabel $true `
+                | Out-Null            
+        }
+    } else {
+        # Thrash out a new one.
+        Write-Host "Creating auto-labeling policy: $policyName"
 
-    New-AutoSensitivityLabelPolicy `
-        -Name $policyName `
-        -ApplySensitivityLabel $deployedLabel.Guid `
-        -ExchangeLocation 'All' `
-        -Mode 'TestWithoutNotifications' `
-        -OverwriteLabel $true              
+        New-AutoSensitivityLabelPolicy `
+            -Name $policyName `
+            -ApplySensitivityLabel $deployedLabel.Guid `
+            -ExchangeLocation 'All' `
+            -Mode 'TestWithoutNotifications' `
+            -OverwriteLabel $true `
+            | Out-Null
+    }
 
-    Write-Host "Creating auto-labeling policy rule: $ruleName"
+    # To do: add in existance checks
+    Write-Host "`tCreating auto-labeling policy rule: $ruleName"
 
-    New-AutoSensitivityLabelRule `
+    $rule = New-AutoSensitivityLabelRule `
         -Name $ruleName `
         -HeaderMatchesPatterns @{"x-protective-marking" =  $HeaderRegex} `
         -Workload "Exchange" `
@@ -156,8 +176,10 @@ function Assert-DecryptionTransportRule {
 }
 
 
-# Wild, be careful.
+# Debugging.
 function Remove-AllLabelsAndPolicies {
+
+    # TO DO, check if there are children, and remove them first.
 
     $policies = Get-AutoSensitivityLabelPolicy | Where-Object { $_.mode -ne 'PendingDeletion' }
     if ($policies) {

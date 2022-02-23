@@ -26,9 +26,9 @@ param (
 
 # Import our common functions.
 Try {
-    . .\Functions.ps1
+    . .\_functions.ps1
 } Catch {
-    Throw 'Could not import functions.ps1.'
+    Throw 'Could not import _functions.ps1.'
 }
 
 # Connect to EXO and SCC via certificate and app registration. Discnnect any existing sessions for good measure.
@@ -36,9 +36,11 @@ Assert-ServiceConnection -CertificateThumbprint $certificateThumbprint -AppId $a
 
 # Provision our labels.
 Assert-EPMSLabel -DisplayName "UNOFFICIAL" -Tooltip "No damage. This information does not form part of official duty."
-Assert-EPMSLabel -DisplayName "OFFICIAL" -Tooltip "No or insignificant damage. This is the majority of routine information."
-Assert-EPMSLabel -DisplayName "OFFICIAL - Sensitive" -Tooltip "Limited damage to an individual, organisation or government generally if compromised." -ParentLabelDisplayName "OFFICIAL"
-Assert-EPMSLabel -DisplayName "PROTECTED" -Tooltip "Damage to the national interest, organisations or individuals."
+Assert-EPMSLabel -DisplayName "OFFICIAL [Parent]" -Tooltip "Parent." -IsParent
+Assert-EPMSLabel -DisplayName "OFFICIAL" -Tooltip "No or insignificant damage. This is the majority of routine information." -ParentLabelDisplayName "OFFICIAL [Parent]"
+Assert-EPMSLabel -DisplayName "OFFICIAL - Sensitive" -Tooltip "Limited damage to an individual, organisation or government generally if compromised." -ParentLabelDisplayName "OFFICIAL [Parent]"
+Assert-EPMSLabel -DisplayName "PROTECTED [Parent]" -Tooltip "Parent." -IsParent
+Assert-EPMSLabel -DisplayName "PROTECTED" -Tooltip "Damage to the national interest, organisations or individuals." -ParentLabelDisplayName "PROTECTED [Parent]"
 
 # Disconnect!
 Assert-ServiceConnection -Disconnect

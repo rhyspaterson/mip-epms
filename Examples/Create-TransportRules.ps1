@@ -24,9 +24,9 @@ param (
 
 # Import our common functions.
 Try {
-    . .\Functions.ps1
+    . .\_functions.ps1
 } Catch {
-    Throw 'Could not import functions.ps1.'
+    Throw 'Could not import _functions.ps1.'
 }
 
 # Connect to EXO and SCC via certificate and app registration. Discnnect any existing sessions for good measure.

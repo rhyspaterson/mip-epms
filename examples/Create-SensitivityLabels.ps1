@@ -35,19 +35,18 @@ Try {
 # Connect to EXO and SCC via certificate and app registration. Discnnect any existing sessions for good measure.
 Assert-ServiceConnection -CertificateThumbprint $certificateThumbprint -AppId $appId -Tenant $tenant
 
-# Enumerate the configuration and provision/configure.
+# Enumerate the configuration and provision/configure the sensitivty labels.
 foreach ($label in $labels) {
-    
-    # Create the sensitivty labels
     Assert-EPMSLabel `
         -DisplayName $label.LabelDisplayName `
         -Tooltip $label.Tooltip `
-        -IsParent $label.IsParent `
-        -ParentLabelDisplayName $label.ParentLabel
+        -Hierarchy $label.Hierarchy `
+        -ParentLabelDisplayName $label.ParentLabel       
+}
 
-    if (-not($label.IsParent)) {
-        
-        # Create the matching auto-labeling policies
+# Enumerate the configuration and provision/configure the auto-labeling policies and rules.
+foreach ($label in $labels) {
+    if (-not($label.Hierarchy -eq 'IsParent')) {
         Assert-AutoSensitivityLabelPolicyAndRule `
             -Identifier $label.Identifier `
             -LabelDisplayName $label.LabelDisplayName `
@@ -56,8 +55,8 @@ foreach ($label in $labels) {
 }
 
 # Create the ETR. Add domains into here as required.
-$authorisedDomains = @('contoso-1.gov.au', 'contoso-2.gov.au')
-Assert-DecryptionTransportRule -DisplayName 'EPMS - Strip encryption for outgoing emails and attachments' -TrustedDestinations $authorisedDomains
+#$authorisedDomains = @('contoso-1.gov.au', 'contoso-2.gov.au')
+#Assert-DecryptionTransportRule -DisplayName 'EPMS - Strip encryption for outgoing emails and attachments' -TrustedDestinations $authorisedDomains
 
 # Disconnect!
 Assert-ServiceConnection -Disconnect

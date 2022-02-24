@@ -17,11 +17,15 @@ https://github.com/rhyspaterson/mip-epms
 
 param (
     [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
-    $appId,    
+    [string] $appId,    
     [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
-    $certificateThumbprint,
+    [string] $certificateThumbprint,
     [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
-    $tenant
+    [string] $tenant,
+    [Parameter(Mandatory=$false, ValueFromPipeline=$true)]
+    [switch] $RemoveExistingLabelsAndPolicies,
+    [Parameter(Mandatory=$false, ValueFromPipeline=$true)]
+    [switch] $WaitForPendingDeletions    
 )
 
 # Import our common functions.
@@ -36,26 +40,50 @@ Try {
 # Connect to EXO and SCC via certificate and app registration. Discnnect any existing sessions for good measure.
 Assert-ServiceConnection -CertificateThumbprint $certificateThumbprint -AppId $appId -Tenant $tenant
 
-# Enumerate the configuration and provision/configure the sensitivty labels.
+# Trash everything prior, useful in building the full configuration state.
+if ($RemoveExistingLabelsAndPolicies) {
+    Write-Log -Message "Removing all exisitng labels and policies" -Level 'Warning'
+    Remove-AllLabelsAndPolicies
+}
+
+# Wait for pending deletions, useful if you want to re-use the same name for some objects.
+if ($WaitForPendingDeletions) {
+    Write-Log -Message "Waiting for pending label and policy deletions."
+    $deletionStatus = Get-PendingLabelAndPolicyDeletionStatus
+    while ($deletionStatus -ne 'complete') {
+        $deletionStatus = Get-PendingLabelAndPolicyDeletionStatus
+        Start-Sleep 30
+    }    
+}
+
+# Enumerate the configuration.
 foreach ($label in $labels) {
+    
+    # Configure the sensitivity labels.
     Assert-EPMSLabel `
         -DisplayName $label.LabelDisplayName `
         -Tooltip $label.Tooltip `
         -Hierarchy $label.Hierarchy `
         -ParentLabelDisplayName $label.ParentLabel       
-}
 
-# Enumerate the configuration and provision/configure the auto-labeling policies and rules.
-foreach ($label in $labels) {
     if (-not($label.Hierarchy -eq 'IsParent')) {
+        
+        # Configure the auto-labeling policies and rules to apply labels to inbound mail.
         Assert-AutoSensitivityLabelPolicyAndRule `
             -Identifier $label.Identifier `
             -LabelDisplayName $label.LabelDisplayName `
             -HeaderRegex $label.HeaderRegex 
-    }
+
+        # Configure DLP rule to intelligently append the EPMS marking into the subject line.
+        Assert-DlpCompliancePolicyAndRule `
+            -Identifier $label.Identifier `
+            -LabelDisplayName $label.LabelDisplayName `
+            -SubjectRegex $label.SubjectRegex `
+            -SubjectExample $label.SubjectExample            
+    }        
 }
 
-# Create the ETR. 
+# Create the ETR to strip encryption for mail send to trusted domains.
 Assert-DecryptionTransportRule -DisplayName 'EPMS - Strip encryption for outgoing emails and attachments' -TrustedDomains $authorisedDomains
 
 # Disconnect!

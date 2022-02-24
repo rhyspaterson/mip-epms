@@ -1,3 +1,35 @@
+function Write-Log {
+    Param(
+        [string] $Message,
+        [string] $Level
+    )
+
+
+    $timeStamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+
+    if ($Level) {
+
+        if ($Level -eq 'warning') {
+            $colour = 'Yellow'
+        }
+        if ($Level -eq 'error') {
+            $colour = 'Red'
+        }
+        if ($Level -eq 'success') {
+            $colour = 'Green'
+        }
+    
+        $initialColour = $host.ui.RawUI.ForegroundColor
+        $host.UI.RawUI.ForegroundColor = $colour
+        Write-Output "$timeStamp`t$Message"
+        $host.UI.RawUI.ForegroundColor = $initialColour
+    
+    }
+    else {
+        Write-Output "$timeStamp`t$Message"
+    }
+        
+}
 
 function Assert-ServiceConnection {
     param(
@@ -7,7 +39,7 @@ function Assert-ServiceConnection {
         [switch] $Disconnect
     )
 
-    Write-Host "Removing any existing Exchange Online connections."
+    Write-Log "Removing any existing Exchange Online connections."
 
     Disconnect-ExchangeOnline -Confirm:$false -InformationAction Ignore -ErrorAction SilentlyContinue
 
@@ -15,7 +47,8 @@ function Assert-ServiceConnection {
 
     # Requires WinRM basic configuration enabled on the client, assumes Windows currently
     if (-not (Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client' -Name 'AllowBasic')) {
-        throw "WinRM based auth is not configured."
+        Write-Log -Message "WinRM based auth is not configured." -Level 'Error'
+        throw
     }
 
     Disconnect-ExchangeOnline -Confirm:$false -InformationAction Ignore -ErrorAction SilentlyContinue
@@ -24,18 +57,40 @@ function Assert-ServiceConnection {
 
         Import-Module ExchangeOnlineManagement -ErrorAction Stop
 
-        Write-Host "Establishing connection to '$Tenant' via certificate '$CertificateThumbprint' and app registration '$AppId'."
+        Write-Log -Message "Establishing connection to '$Tenant'."
+        Write-Log -Message "`tCertificate: '$CertificateThumbprint'"
+        Write-Log -Message "`tApplication registration: '$AppId'."
 
         # Connect EOL
-        Connect-ExchangeOnline -CertificateThumbprint $CertificateThumbprint -AppID $AppId -Organization $Tenant -ShowBanner:$false -ShowProgress:$false
+        # Connect-ExchangeOnline -CertificateThumbprint $CertificateThumbprint -AppID $AppId -Organization $Tenant -ShowBanner:$false -ShowProgress:$false | Out-Null
 
         # Connect SCC, https://github.com/MicrosoftDocs/office-docs-powershell/issues/6716
-        Connect-ExchangeOnline -CertificateThumbprint $CertificateThumbprint -AppID $AppId -Organization $Tenant -ShowBanner:$false -ShowProgress:$false -ConnectionURI "https://ps.compliance.protection.outlook.com/powershell-liveid/"
+        Connect-ExchangeOnline -CertificateThumbprint $CertificateThumbprint -AppID $AppId -Organization $Tenant -ShowBanner:$false -ShowProgress:$false -ConnectionURI "https://ps.compliance.protection.outlook.com/powershell-liveid/" | Out-Null
 
     } catch {
-        throw "Failed to connect to Exchange Online and the SCC ($_.Exception)"
+        Write-Log -Message "Failed to connect to Exchange Online and the SCC ($_.Exception)" -Level 'Error'
+        throw        
     }
 
+}
+
+function Get-SensitivityLabelByDisplayName {
+    Param(
+        [string] $DisplayName,
+        [switch] $ThrowIfMissing
+    )
+
+    $label = Get-Label | Where-Object { ($_.DisplayName -eq $DisplayName) -and ($_.Mode -ne 'PendingDeletion') }
+
+    if ($label) {
+        return $label
+    } else {
+        if ($ThrowIfMissing) {
+            Write-Log -Message "Sensitivity label '$DisplayName' does not exist." -Level 'Error'
+            throw
+        }
+        return $false
+    }
 }
 function Assert-EPMSLabel {
     param(
@@ -46,14 +101,14 @@ function Assert-EPMSLabel {
       )
     # Check for existance.
     if ($label = Get-Label | Where-Object { ($_.DisplayName -eq $DisplayName) -and ($_.Mode -ne 'PendingDeletion') }) {
-        Write-Warning "Existing label '$DisplayName' detected. Skipping modifications."
+        Write-Log -Message "Existing label '$DisplayName' detected, skipping modifications." -Level 'Warning'
         return
     }
 
     # If it's a parent label for visual purposes only, configure the essentials.
     if ($Hierarchy -eq 'IsParent') {
        
-        Write-Host "Creating parent label '$DisplayName'" 
+        Write-Log -Message "Creating parent label '$DisplayName'." 
 
         $label = New-Label `
             -DisplayName $DisplayName `
@@ -65,7 +120,7 @@ function Assert-EPMSLabel {
     # Else it's in the root with no parent or is a child label with a parent, so configure a full label.
     } else {
         
-        Write-Host "Creating root or child label '$DisplayName'"
+        Write-Log -Message "Creating root or child label '$DisplayName'."
 
         # Configure a fully fledged label.
         $label = New-Label `
@@ -84,7 +139,7 @@ function Assert-EPMSLabel {
 
     # Finally, assign a parent label to the child, if required.
     if ($Hierarchy -eq 'HasParent') {
-        Write-Host "`tSetting parent label for '$($label.displayName)' to '$($ParentLabelDisplayName)'"
+        Write-Log -Message "`tSetting parent label for '$($label.displayName)' to '$($ParentLabelDisplayName)'."
         $parentLabel = Get-Label | Where-Object { ($_.DisplayName -eq $ParentLabelDisplayName) -and ($_.Mode -ne 'PendingDeletion') }
         Set-Label -Identity $($label.Guid) -ParentId $parentLabel.Guid
     }
@@ -98,7 +153,7 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
         [string]$HeaderRegex
     )
     
-    Write-Host "Configuring auto-labeling for '$($LabelDisplayName)'."
+    Write-Log -Message "Configuring auto-labeling for '$($LabelDisplayName)'."
 
     # Ensure the sensitivity label we are linking the policy to exists.
     $deployedLabel = Get-Label | Where-Object { ($_.DisplayName -eq $LabelDisplayName) -and ($_.Mode -ne 'PendingDeletion') }
@@ -113,10 +168,10 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
     # Check if the auto-labeling policy already exists, updating if it so.    
     if($policy = Get-AutoSensitivityLabelPolicy | Where-Object { ($_.Name -eq $policyName) }) {
         if ($policy.Mode -eq 'PendingDeletion') {
-            Write-Warning "`tAuto-labeling policy '$policyName' exists in a pending deletion state. Cannot update."
+            Write-Log -Message "`tAuto-labeling policy '$policyName' exists in a pending deletion state. Cannot update." -Level 'Warning'
             return
         } else {
-            Write-Host "`tAuto-labeling policy '$policyName' exists, updating."
+            Write-Log -Message "`tAuto-labeling policy '$policyName' exists, updating."
             Set-AutoSensitivityLabelPolicy `
                 -Identity $policyName `
                 -ApplySensitivityLabel $deployedLabel.Guid `
@@ -127,7 +182,7 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
         }
     } else {
         # Thrash out a new one.
-        Write-Host "Creating auto-labeling policy: $policyName"
+        Write-Log -Message "Creating auto-labeling policy: $policyName"
 
         New-AutoSensitivityLabelPolicy `
             -Name $policyName `
@@ -138,16 +193,86 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
             | Out-Null
     }
 
-    # To do: add in existance checks
-    Write-Host "`tCreating auto-labeling policy rule: $ruleName"
+    if($rule = Get-AutoSensitivityLabelRule | Where-Object { ($_.Name -eq $ruleName) }) {
+        if ($rule.Mode -eq 'PendingDeletion') {
+            Write-Log -Message "`tAuto-labeling rule '$ruleName' exists in a pending deletion state. Cannot update." -Level 'Warning'
+            return
+        } else {
+            # Note that we can't changed the linked ParentPolicyName without deleting and re-creating the rule.
+            if ($rule.ParentPolicyName -eq $policyName) {
+                Write-Log -Message "`tAuto-labeling rule '$ruleName' exists, updating."
+                Set-AutoSensitivityLabelRule `
+                    -Identity $ruleName `
+                    -HeaderMatchesPatterns @{"x-protective-marking" =  $HeaderRegex} `
+                    -Workload "Exchange" 
+            } else {
+                Write-Log -Message "`tAuto-labeling rule '$ruleName' exists, but is not linked to '$policyName'. Cannot update." -Level 'Warning'
+                return                
+            }
+        }
+    } else {
+        # Thrash out a new one.
+        Write-Log -Message "`tCreating auto-labeling policy rule: $ruleName"
 
-    $rule = New-AutoSensitivityLabelRule `
-        -Name $ruleName `
-        -HeaderMatchesPatterns @{"x-protective-marking" =  $HeaderRegex} `
-        -Workload "Exchange" `
-        -Policy "$policyName"
+        New-AutoSensitivityLabelRule `
+            -Name $ruleName `
+            -HeaderMatchesPatterns @{"x-protective-marking" =  $HeaderRegex} `
+            -Workload "Exchange" `
+            -Policy "$policyName" | Out-Null
+    }
+
 }
 
+function Assert-DlpCompliancePolicyAndRule {
+    param(
+        [string] $Identifier,
+        [string] $LabelDisplayName,
+        [string] $SubjectRegex,
+        [string] $SubjectExample
+    )
+
+    Write-Log -Message "Configuring intelligent auto-subject append for '$($LabelDisplayName)'."
+    
+    # Ensure the sensitivity label we are linking the policy to exists.
+    $deployedLabel = Get-SensitivityLabelByDisplayName -DisplayName $LabelDisplayName -ThrowIfMissing
+            
+    $policyName = "Subject append '$identifier' mail" # max 64 characters
+    $ruleName = "If '$LabelDisplayName', append subject" # max 64 characters      
+
+    Write-Log -Message "`tCreating compliance policy '$policyName'."
+
+    New-DlpCompliancePolicy `
+        -Name $policyName `
+        -ExchangeLocation 'All' `
+        -Mode 'TestWithoutNotifications' | Out-Null
+
+    $complexRule = @(
+        @{
+            operator = "And"; 
+            groups = @(
+                @{
+                    operator="Or";
+                    name="Default";
+                    labels = @(
+                        @{
+                            name="$($deployedLabel.Name)";
+                            type="Sensitivity"
+                        } 
+                    )
+                }
+            )
+        }
+    )
+    
+    Write-Log -Message "`tCreating compliance rule '$ruleName'."
+
+    New-DlpComplianceRule `
+        -Name $ruleName `
+        -Policy $policyName `
+        -PrependSubject $SubjectExample `
+        -ContentContainsSensitiveInformation $complexRule `
+        | Out-Null
+}
 function Assert-DecryptionTransportRule {
     param(
         [string]
@@ -157,7 +282,7 @@ function Assert-DecryptionTransportRule {
     )
 
     If (Get-TransportRule -Identity $DisplayName -ErrorAction SilentlyContinue) {
-        Write-Host "Transport rule '$DisplayName' exists, updating."
+        Write-Log -Message "Transport rule '$DisplayName' exists, updating."
         Set-TransportRule `
             -Identity $DisplayName `
             -FromScope 'InOrganization' `
@@ -165,7 +290,7 @@ function Assert-DecryptionTransportRule {
             -RemoveOMEv2 $true `
             -RemoveRMSAttachmentEncryption $true                
     } else {
-        Write-Host "Creating new transport rule '$DisplayName'."
+        Write-Log -Message "Creating new transport rule '$DisplayName'."
         New-TransportRule `
             -Name $DisplayName `
             -FromScope 'InOrganization' `
@@ -179,21 +304,43 @@ function Assert-DecryptionTransportRule {
 # Debugging.
 function Remove-AllLabelsAndPolicies {
 
-    # TO DO, check if there are children, and remove them first.
-
-    $policies = Get-AutoSensitivityLabelPolicy | Where-Object { $_.mode -ne 'PendingDeletion' }
-    if ($policies) {
-        Write-Warning "Removing all $($policies.Count) policies"
-        $policies | Remove-AutoSensitivityLabelPolicy -Confirm:$true
+    $compliancePolicies = Get-DlpCompliancePolicy | Where-Object { $_.mode -ne 'PendingDeletion' }
+    if ($compliancePolicies) {
+        Write-Log -Message "`tRemoving $($compliancePolicies.Count) compliance policies." -Level 'Warning'
+        $compliancePolicies | Remove-DlpCompliancePolicy -Confirm:$true
     } else {
-        Write-Host "No policies to delete."
+        Write-Log -Message "`tNo DLP compliance policies to delete."
     }
 
+    $autoLabelPolicies = Get-AutoSensitivityLabelPolicy | Where-Object { $_.mode -ne 'PendingDeletion' }
+    if ($autoLabelPolicies) {
+        Write-Log -Message "`tRemoving $($autoLabelPolicies.Count) auto-labeling policies." -Level 'Warning'
+        $autoLabelPolicies | Remove-AutoSensitivityLabelPolicy -Confirm:$true
+    } else {
+        Write-Log -Message "`tNo auto-labling policies to delete."
+    }
+
+    # TO DO, check if there are children, and remove them first.
     $labels = Get-Label | Where-Object { $_.mode -ne 'PendingDeletion' }
     if ($labels) {
-        Write-Warning "Removing all $($labels.Count) labels"
+        Write-Log -Message "`tRemoving $($labels.Count) sensitivity labels." -Level 'Warning'
         $labels | Remove-Label -Confirm:$true
     } else {
-        Write-Host "No labels to delete."
+        Write-Log -Message "`tNo sensitivity labels to delete."
     }  
+}
+
+function Get-PendingLabelAndPolicyDeletionStatus {
+
+    $compliancePolicies = Get-DlpCompliancePolicy | Where-Object { $_.mode -eq 'PendingDeletion' }
+    $autoLabelPolicies = Get-AutoSensitivityLabelPolicy | Where-Object { $_.mode -eq 'PendingDeletion' }
+    $labels = Get-Label | Where-Object { $_.mode -eq 'PendingDeletion' }
+
+    Write-Log -Message "`tPending deletion: $($compliancePolicies.count) compliance policies, $($autoLabelPolicies.count) auto-label policies, $($labels.count) labels."
+
+    if (($compliancePolicies.count -ne 0) -or ($autoLabelPolicies.count -ne 0) -or ($labels.count -ne 0)) {
+        return 'pending'
+    } else {
+        return 'completed'
+    }
 }

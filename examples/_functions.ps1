@@ -62,7 +62,7 @@ function Assert-ServiceConnection {
         Write-Log -Message "`tApplication registration: '$AppId'."
 
         # Connect EOL
-        # Connect-ExchangeOnline -CertificateThumbprint $CertificateThumbprint -AppID $AppId -Organization $Tenant -ShowBanner:$false -ShowProgress:$false | Out-Null
+        Connect-ExchangeOnline -CertificateThumbprint $CertificateThumbprint -AppID $AppId -Organization $Tenant -ShowBanner:$false -ShowProgress:$false | Out-Null
 
         # Connect SCC, https://github.com/MicrosoftDocs/office-docs-powershell/issues/6716
         Connect-ExchangeOnline -CertificateThumbprint $CertificateThumbprint -AppID $AppId -Organization $Tenant -ShowBanner:$false -ShowProgress:$false -ConnectionURI "https://ps.compliance.protection.outlook.com/powershell-liveid/" | Out-Null
@@ -139,7 +139,7 @@ function Assert-EPMSLabel {
 
     # Finally, assign a parent label to the child, if required.
     if ($Hierarchy -eq 'HasParent') {
-        Write-Log -Message "`tSetting parent label for '$($label.displayName)' to '$($ParentLabelDisplayName)'."
+        Write-Log -Message "Setting parent label for '$($label.displayName)' to '$($ParentLabelDisplayName)'."
         $parentLabel = Get-Label | Where-Object { ($_.DisplayName -eq $ParentLabelDisplayName) -and ($_.Mode -ne 'PendingDeletion') }
         Set-Label -Identity $($label.Guid) -ParentId $parentLabel.Guid
     }
@@ -168,10 +168,10 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
     # Check if the auto-labeling policy already exists, updating if it so.    
     if($policy = Get-AutoSensitivityLabelPolicy | Where-Object { ($_.Name -eq $policyName) }) {
         if ($policy.Mode -eq 'PendingDeletion') {
-            Write-Log -Message "`tAuto-labeling policy '$policyName' exists in a pending deletion state. Cannot update." -Level 'Warning'
+            Write-Log -Message "Auto-labeling policy '$policyName' exists in a pending deletion state. Cannot update." -Level 'Warning'
             return
         } else {
-            Write-Log -Message "`tAuto-labeling policy '$policyName' exists, updating."
+            Write-Log -Message "Auto-labeling policy '$policyName' exists, updating."
             Set-AutoSensitivityLabelPolicy `
                 -Identity $policyName `
                 -ApplySensitivityLabel $deployedLabel.Guid `
@@ -195,24 +195,24 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
 
     if($rule = Get-AutoSensitivityLabelRule | Where-Object { ($_.Name -eq $ruleName) }) {
         if ($rule.Mode -eq 'PendingDeletion') {
-            Write-Log -Message "`tAuto-labeling rule '$ruleName' exists in a pending deletion state. Cannot update." -Level 'Warning'
+            Write-Log -Message "Auto-labeling rule '$ruleName' exists in a pending deletion state. Cannot update." -Level 'Warning'
             return
         } else {
             # Note that we can't changed the linked ParentPolicyName without deleting and re-creating the rule.
             if ($rule.ParentPolicyName -eq $policyName) {
-                Write-Log -Message "`tAuto-labeling rule '$ruleName' exists, updating."
+                Write-Log -Message "Auto-labeling rule '$ruleName' exists, updating."
                 Set-AutoSensitivityLabelRule `
                     -Identity $ruleName `
                     -HeaderMatchesPatterns @{"x-protective-marking" =  $HeaderRegex} `
                     -Workload "Exchange" 
             } else {
-                Write-Log -Message "`tAuto-labeling rule '$ruleName' exists, but is not linked to '$policyName'. Cannot update." -Level 'Warning'
+                Write-Log -Message "Auto-labeling rule '$ruleName' exists, but is not linked to '$policyName'. Cannot update." -Level 'Warning'
                 return                
             }
         }
     } else {
         # Thrash out a new one.
-        Write-Log -Message "`tCreating auto-labeling policy rule: $ruleName"
+        Write-Log -Message "Creating auto-labeling policy rule: $ruleName"
 
         New-AutoSensitivityLabelRule `
             -Name $ruleName `
@@ -239,7 +239,7 @@ function Assert-DlpCompliancePolicyAndRule {
     $policyName = "Subject append '$identifier' mail" # max 64 characters
     $ruleName = "If '$LabelDisplayName', append subject" # max 64 characters      
 
-    Write-Log -Message "`tCreating compliance policy '$policyName'."
+    Write-Log -Message "Creating compliance policy '$policyName'."
 
     New-DlpCompliancePolicy `
         -Name $policyName `
@@ -264,8 +264,9 @@ function Assert-DlpCompliancePolicyAndRule {
         }
     )
     
-    Write-Log -Message "`tCreating compliance rule '$ruleName'."
+    Write-Log -Message "Creating compliance rule '$ruleName'."
 
+    # Change this to modify subject once I have a tenant with the feature enabled
     New-DlpComplianceRule `
         -Name $ruleName `
         -Policy $policyName `
@@ -306,10 +307,10 @@ function Remove-AllLabelsAndPolicies {
 
     $compliancePolicies = Get-DlpCompliancePolicy | Where-Object { $_.mode -ne 'PendingDeletion' }
     if ($compliancePolicies) {
-        Write-Log -Message "`tRemoving $($compliancePolicies.Count) compliance policies." -Level 'Warning'
+        Write-Log -Message "Removing $($compliancePolicies.Count) compliance policies." -Level 'Warning'
         $compliancePolicies | Remove-DlpCompliancePolicy -Confirm:$true
     } else {
-        Write-Log -Message "`tNo DLP compliance policies to delete."
+        Write-Log -Message "No DLP compliance policies to delete."
     }
 
     $autoLabelPolicies = Get-AutoSensitivityLabelPolicy | Where-Object { $_.mode -ne 'PendingDeletion' }
@@ -317,16 +318,32 @@ function Remove-AllLabelsAndPolicies {
         Write-Log -Message "`tRemoving $($autoLabelPolicies.Count) auto-labeling policies." -Level 'Warning'
         $autoLabelPolicies | Remove-AutoSensitivityLabelPolicy -Confirm:$true
     } else {
-        Write-Log -Message "`tNo auto-labling policies to delete."
+        Write-Log -Message "No auto-labling policies to delete."
     }
 
     # TO DO, check if there are children, and remove them first.
+    # (Get-Label).ParentId.Guid
+    [array] $skippedLabels = $null
     $labels = Get-Label | Where-Object { $_.mode -ne 'PendingDeletion' }
     if ($labels) {
-        Write-Log -Message "`tRemoving $($labels.Count) sensitivity labels." -Level 'Warning'
-        $labels | Remove-Label -Confirm:$true
+        Write-Log -Message "Removing $($labels.Count) sensitivity labels." -Level 'Warning'
+
+        ForEach ($label in $labels) {
+            if ($null -ne $label.ParentId.Guid) {
+                # Label has no parent, we can delete it.
+                $label | Remove-Label -Confirm:$true
+            } else {
+                # Store it for a subsequent deletion.
+                $skippedLabels += $label.name
+            }
+        }
+        # Trash the skipped labels now that the childs are deleted.
+        $skippedLabels | ForEach-Object {
+            Remove-Label -Identity $_ -Confirm:$true
+        }
+
     } else {
-        Write-Log -Message "`tNo sensitivity labels to delete."
+        Write-Log -Message "No sensitivity labels to delete."
     }  
 }
 
@@ -336,7 +353,7 @@ function Get-PendingLabelAndPolicyDeletionStatus {
     $autoLabelPolicies = Get-AutoSensitivityLabelPolicy | Where-Object { $_.mode -eq 'PendingDeletion' }
     $labels = Get-Label | Where-Object { $_.mode -eq 'PendingDeletion' }
 
-    Write-Log -Message "`tPending deletion: $($compliancePolicies.count) compliance policies, $($autoLabelPolicies.count) auto-label policies, $($labels.count) labels."
+    Write-Log -Message "Pending deletion: $($compliancePolicies.count) compliance policies, $($autoLabelPolicies.count) auto-label policies, $($labels.count) labels."
 
     if (($compliancePolicies.count -ne 0) -or ($autoLabelPolicies.count -ne 0) -or ($labels.count -ne 0)) {
         return 'pending'

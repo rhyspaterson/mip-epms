@@ -1,4 +1,3 @@
-
 <#
 .DESCRIPTION
 To do.
@@ -48,7 +47,7 @@ if ($RemoveExistingLabelsAndPolicies) {
 
 # Wait for pending deletions, useful if you want to re-use the same name for some objects.
 if ($WaitForPendingDeletions) {
-    Write-Log -Message "Waiting for pending label and policy deletions."
+    Write-Log -Message "Waiting for pending label and policy deletions. This can take a very long time."
     $deletionStatus = Get-PendingLabelAndPolicyDeletionStatus
     while ($deletionStatus -ne 'complete') {
         $deletionStatus = Get-PendingLabelAndPolicyDeletionStatus
@@ -58,6 +57,8 @@ if ($WaitForPendingDeletions) {
 
 # Enumerate the configuration.
 foreach ($label in $labels) {
+
+    Write-Log -Message "Enumerating: $($label.Identifier)" -Level 'Success'
     
     # Configure the sensitivity labels.
     Assert-EPMSLabel `
@@ -80,7 +81,9 @@ foreach ($label in $labels) {
             -LabelDisplayName $label.LabelDisplayName `
             -SubjectRegex $label.SubjectRegex `
             -SubjectExample $label.SubjectExample            
-    }        
+    }
+    
+    Write-Log -Message ""
 }
 
 # Create the ETR to strip encryption for mail send to trusted domains.

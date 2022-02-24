@@ -1,7 +1,7 @@
 # EPMS + MIP
 Configuration as code to enable support for the Australian Government's Email Protective Marking Standard (EPMS) within Microsoft 365. 
 
-- Focus is on Outlook primarially and the native (non-AIP UL) client.
+The focus is primarially to support Outlook, cross-platform, using the native (non-AIP UL) client.
 
 ## Components
 
@@ -13,25 +13,19 @@ Configuration as code to enable support for the Australian Government's Email Pr
 - Compliance Data Loss Prevention Policies
 - Exchange Online Transport Rules
 
-### Supported
-- Mandatory labeling in all Outlook clients (Windows, Web, iOS and Android)
-- Shared and delegate mailboxes support in Outlook for iOS
-- Strip encryption from all email and attachments (GA March 22*)
-- Auto-labelling based on x-header and/or subject (classify mail coming in)
-- In auto-labelling, allow encryption to be applied if the label has it configured
-- Append the classificaiton in the subject
+### Feature status
 
-### Limitations
-
- - The x-header manipulation does not support variables, so we cannot insert ORIGIN=<sender-upn@contoso.gov.au> (H2 22)
- - The x-header manipulation does not support commas `,` or colons `:` so we cannot support DLMs/access markers/caveats
- - The x-header is restricted to a length of 64 characters
- - Prevent downgrade of labelling (H2 22)
-
-### Beavhours to expect
-
-- Reclassify on reply (e.g., TITUS wanting origin=)
-- End of june for testing H2 22 features in preview
-- Future MVP: support calendar, and label inheritance
-
+- [x] On mail send for Outlook, require a label to be applied if it is missing across all Outlook clients (Windows, Mac, Web, iOS and Android)
+- [ ] On mail send from Outlook, allow a `x-protective-marking` be inserted based on the metadata of the sensitivity label label selected.
+- [x] On mail received into Exchange Online, the email cannot be marked with a sensitivity label label based on the `x-protective-marking` header and/or subject.
+- [x] On mail received into Exchange Online, the email cannot be encrypted via the sensitivity label.
+- [ ] On mail send from Outlook, the display name of the sensitivity label could not be appended into the email subject line, only prefixed.
+- [x] On mail send from Outlook, using a sensitivity label that applies rights management encryption, both the email body and any attachments cannot be decrypted for a given scenario.
+- [x] On mail send from a shared or delegated mailbox in Outlook for iOS, a sensitivity label could not be applied.
+- [ ] When downgrading a sensitivity label, the downgrade could not be prevented, only justified.
+- [ ] When maniplulating the `x-protective-marking` header, we cannot insert variables, such as a username.
+- [ ] When maniplulating the `x-protective-marking` header, we cannot insert commas `,` or colons `:` and thus DLMs/access markers/caveats
+- [ ] When maniplulating the `x-protective-marking` header, we cannot insert a header that is greater than 64 characters
+- [ ] Something about calendars
+- [ ] Something about inheritance
 

@@ -4,7 +4,6 @@ function Write-Log {
         [string] $Level
     )
 
-
     $timeStamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
 
     if ($Level) {
@@ -27,8 +26,7 @@ function Write-Log {
     }
     else {
         Write-Output "$timeStamp`t$Message"
-    }
-        
+    }   
 }
 
 function Assert-ServiceConnection {

@@ -1,12 +1,12 @@
 <#
 .DESCRIPTION
-To do.
+Provisions sensitivity labels and the supporting DLP and ETR policies to provide EPMS support under the PSPF.
 
 .NOTES
 Assumes the Global Administrator role or appropraite privilege is allocated to the app registration.
 
 .EXAMPLE
-.\Create-SensitivityLabels.ps1 `
+.\Create-SensitivityLabelsAndPolicies.ps1 `
     -certificateThumbprint 'CFE601DF99EC017EAA19D8853004873B5B46DBBA' `
     -appId "07f8ec11-b3e4-4484-8af4-1b02c42f7d4a" `
     -tenant "contoso.onmicrosoft.com"

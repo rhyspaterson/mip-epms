@@ -14,7 +14,7 @@ $labels = [PSCustomObject]@(
         SubjectRegex        = "(?im)sec=unofficial\u002C"
         SubjectExample      = "[SEC=UNOFFICIAL]"
         DocumentMarkingText = "UNOFFICIAL"        
-        Hierarchy           = "Root"
+        Hierarchy           = "NoParent"
     }
     [PSCustomObject]@{
         Identifier          = "official-parent"

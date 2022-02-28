@@ -1,7 +1,7 @@
 # Email Protective Marking Standard and Microsoft 365
 This repository provides information and configuration as code to support for the Australian Government's Email Protective Marking Standard (EPMS) within Microsoft 365. 
 
-The focus is primarily to support Outlook, cross-platform, using the native (non-AIP UL) client. Not all functionality that might be expected to be provided through third-party tools are currently supported. Note that unlike purely client-side solutions, controls are implemented either client or server-side, depending on the scenario.
+The focus is primarily to support Outlook, cross-platform, using the native (non-AIP UL) client. Not all functionality that might be expected to be provided through third-party tools are currently supported. Note that unlike purely client-side solutions, controls are implemented either client or server-side, depending on the scenario. The intent is to leverage the information protection services available within Microsoft 365 to provide a functional and practical data protection capability that supports zero trust, and negates the requirement for traditional client-side or perimeter controls to protect information.
 
 ## Components
 
@@ -33,7 +33,11 @@ The focus is primarily to support Outlook, cross-platform, using the native (non
 - [ ] Allow the application of sensitivity labels to calendar objects.
 - [ ] To do: clarify inheritance.
 
-# Getting started
+## Getting started
+
+If you'd like to skip to coding part, check out the provisioning example. Otherwise, this will step through the approach in provisioning a label and the supporting configuration from scratch.
+
+## Complete Provisioning Example
 
 For the bold, you can reference the [Create-SensitivityLabelsAndPolicies.ps1](examples/Create-SensitivityLabelsAndPolicies.ps1) PowerShell script that will provision a set of sensitivity labels and their supporting configuration. This for the most part assumes you are operating in a development environment, but won't modify existing sensitivity labels just in case.
 

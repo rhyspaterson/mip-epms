@@ -35,7 +35,23 @@ The focus is primarily to support Outlook, cross-platform, using the native (non
 
 ## Getting started
 
-If you'd like to skip to coding part, check out the provisioning example. Otherwise, this will step through the approach in provisioning a label and the supporting configuration from scratch.
+If you'd like to skip to coding part, check out the [complete provisioning example](https://github.com/rhyspaterson/mip-epms/#complete-provisioning-example). Otherwise, this will step through the approach in provisioning a label and the supporting configuration from scratch.
+
+### Create our label
+
+TBC
+
+### Configure the auto-labelling policies
+
+TBC
+
+### Configure the data loss prevention policies
+
+TBC
+
+### Configure the exchange online transport rules
+
+TBC
 
 ## Complete Provisioning Example
 

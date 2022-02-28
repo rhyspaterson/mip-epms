@@ -3,10 +3,13 @@
 To do.
 
 .NOTES
-Requires the Global Administrator role.
+Assumes the Global Administrator role or appropraite privilege is allocated to the app registration.
 
 .EXAMPLE
-.\Create-SensitivityLabels.ps1 -certificateThumbprint 'CFE601DF99EC017EAA19D8853004873B5B46DBBA' -appId "07f8ec11-b3e4-4484-8af4-1b02c42f7d4a" -tenant "contoso.onmicrosoft.com"
+.\Create-SensitivityLabels.ps1 `
+    -certificateThumbprint 'CFE601DF99EC017EAA19D8853004873B5B46DBBA' `
+    -appId "07f8ec11-b3e4-4484-8af4-1b02c42f7d4a" `
+    -tenant "contoso.onmicrosoft.com"
 
 .LINK
 https://github.com/rhyspaterson/mip-epms

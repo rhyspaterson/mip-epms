@@ -238,24 +238,42 @@ function Assert-DlpCompliancePolicyAndRule {
     
     # Ensure the sensitivity label we are linking the policy to exists.
     $deployedLabel = Get-SensitivityLabelByDisplayName -DisplayName $LabelDisplayName -ThrowIfMissing
-            
+
+    if (-not($deployedLabel)) {
+        Throw "Could not get the deployed label details."
+    }
+
     $policyName = "Subject append '$identifier' mail" # max 64 characters
     $ruleName = "If '$LabelDisplayName', append subject" # max 64 characters      
 
-    Write-Log -Message "Creating compliance policy '$policyName'."
+    # Check if the auto-labeling policy already exists, updating if it so.    
+    if($policy = Get-DlpCompliancePolicy | Where-Object { ($_.Name -eq $policyName) }) {
+        
+        Write-Log -Message "Compliance policy '$policyName' exists, updating."
 
-    New-DlpCompliancePolicy `
-        -Name $policyName `
-        -ExchangeLocation 'All' `
-        -Mode 'TestWithoutNotifications' | Out-Null
+        Set-DlpCompliancePolicy `
+            -Identity $policyName `
+            -Mode 'TestWithoutNotifications' | Out-Null        
 
-    $complexRule = @(
+    } else {
+
+        Write-Log -Message "Creating compliance policy '$policyName'."
+
+        New-DlpCompliancePolicy `
+            -Name $policyName `
+            -ExchangeLocation 'All' `
+            -Mode 'TestWithoutNotifications' | Out-Null
+
+    }
+
+    # Build the complex rule objects
+    $complexSensitiveInformationRule = @(
         @{
-            operator = "And"; 
+            operator = "And"
             groups = @(
                 @{
-                    operator="Or";
-                    name="Default";
+                    operator="Or"
+                    name="Default"
                     labels = @(
                         @{
                             name="$($deployedLabel.Name)";
@@ -267,15 +285,43 @@ function Assert-DlpCompliancePolicyAndRule {
         }
     )
     
-    Write-Log -Message "Creating compliance rule '$ruleName'."
+    $complexModifySubjectRule = @{
+        patterns = "{\[SEC=.*?\]}"
+        ReplaceStrategy = 'Append' # Remove matches and append replacement text to subject
+        SubjectText = $SubjectExample
+    }
 
-    # Change this to modify subject once I have a tenant with the feature enabled
-    New-DlpComplianceRule `
-        -Name $ruleName `
-        -Policy $policyName `
-        -PrependSubject $SubjectExample `
-        -ContentContainsSensitiveInformation $complexRule `
-        | Out-Null
+    # Check if the compliance rule already exists, updating if it so.    
+    if($rule = Get-DlpComplianceRule | Where-Object { ($_.Name -eq $ruleName) }) {
+
+        if ($rule.Mode -eq 'PendingDeletion') {
+            Write-Log -Message "Compliance rule '$ruleName' exists in a pending deletion state. Cannot update." -Level 'Warning'
+            return
+        } else {        
+            # Note that we can't changed the linked ParentPolicyName without deleting and re-creating the rule.
+            if ($rule.ParentPolicyName -eq $policyName) {
+            Write-Log -Message "Compliance rule '$ruleName' exists, updating."
+
+            Set-DlpComplianceRule `
+                -Identity $ruleName `
+                -ContentContainsSensitiveInformation $complexSensitiveInformationRule `
+                -ModifySubject $complexModifySubjectRule `
+            } else {
+                Write-Log -Message "Compliance rule '$ruleName' exists, but is not linked to '$policyName'. Cannot update." -Level 'Warning'
+                return                
+            }
+        }
+    } else {
+        # Thrash out a new one.
+        Write-Log -Message "Creating compliance rule '$ruleName'."
+
+        New-DlpComplianceRule `
+            -Name $ruleName `
+            -Policy $policyName `
+            -ContentContainsSensitiveInformation $complexSensitiveInformationRule `
+            -ModifySubject $complexModifySubjectRule `
+            | Out-Null
+    }
 }
 function Assert-DecryptionTransportRule {
     param(

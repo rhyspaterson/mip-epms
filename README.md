@@ -9,9 +9,9 @@ The focus is primarily to support Outlook, cross-platform, using the native (non
 - [App-only authentication in EXO V2](https://docs.microsoft.com/en-us/powershell/exchange/app-only-auth-powershell-v2?view=exchange-ps)
 - Sensitivity Labels
 - Encryption
-- Auto-labelling
-- Compliance Data Loss Prevention Policies
-- Exchange Online Transport Rules
+- Auto-labelling policies
+- Data loss prevention policies
+- Exchange Online transport rules
 
 ### Feature status
 
@@ -21,13 +21,13 @@ The focus is primarily to support Outlook, cross-platform, using the native (non
 - [x] On mail received into Exchange Online, the email cannot be encrypted via the sensitivity label.
 - [ ] On mail send from Outlook, the display name of the sensitivity label could not be appended into the email subject line, only prefixed.
 - [x] On mail send from Outlook, using a sensitivity label that applies rights management encryption, both the email body and any attachments cannot be decrypted for a given scenario.
-- [x] On mail send from a shared or delegated mailbox in Outlook for iOS, a sensitivity label could not be applied.
-- [ ] When downgrading a sensitivity label, the downgrade could not be prevented, only justified.
-- [ ] When manipulating the `x-protective-marking` header, we cannot insert variables, such as a username.
-- [ ] When manipulating the `x-protective-marking` header, we cannot insert commas `,` or colons `:` and thus DLMs/access markers/caveats
-- [ ] When manipulating the `x-protective-marking` header, we cannot insert a header that is greater than 64 characters
-- [ ] Something about calendars
-- [ ] Something about inheritance
+- [x] On mail send from a shared or delegated mailbox in Outlook for iOS, a sensitivity label can not be applied.
+- [ ] When downgrading a sensitivity label, the downgrade can not be prevented, only require justification.
+- [ ] When manipulating the `x-protective-marking` header, variables cannot be inserted, such as a user principal name.
+- [ ] When manipulating the `x-protective-marking` header, advanced characters such as commas `,` or colons `:` cannot be inserted.
+- [ ] When manipulating the `x-protective-marking` header, the new header value cannot exceed 64 characters.
+- [ ] Allow the application of sensitivity labels to calendar objects.
+- [ ] To do: clarify inheritance.
 
 # Getting started
 

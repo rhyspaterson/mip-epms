@@ -1,7 +1,7 @@
-# EPMS + MIP
-Configuration as code to enable support for the Australian Government's Email Protective Marking Standard (EPMS) within Microsoft 365. 
+# Email Protective Marking Standard and Microsoft 365
+This repository provides information and configuration as code to support for the Australian Government's Email Protective Marking Standard (EPMS) within Microsoft 365. 
 
-The focus is primarily to support Outlook, cross-platform, using the native (non-AIP UL) client.
+The focus is primarily to support Outlook, cross-platform, using the native (non-AIP UL) client. Not all functionality that might be expected to be provided through third-party tools are currently supported.
 
 ## Components
 
@@ -15,8 +15,8 @@ The focus is primarily to support Outlook, cross-platform, using the native (non
 
 ### Feature status
 
-- [x] On mail send for Outlook, require a label to be applied if it is missing across all Outlook clients (Windows, Mac, Web, iOS and Android)
-- [ ] On mail send from Outlook, allow a `x-protective-marking` be inserted based on the metadata of the sensitivity label selected.
+- [x] On mail send for Outlook, require a label to be applied if it is missing across all Outlook clients (Windows, Mac, Web, iOS and Android).
+- [ ] On mail send from Outlook, allow an `x-protective-marking` header to be inserted based on the metadata of the sensitivity label selected.
 - [x] On mail received into Exchange Online, the email cannot be marked with a sensitivity label based on the `x-protective-marking` header and/or subject.
 - [x] On mail received into Exchange Online, the email cannot be encrypted via the sensitivity label.
 - [ ] On mail send from Outlook, the display name of the sensitivity label could not be appended into the email subject line, only prefixed.

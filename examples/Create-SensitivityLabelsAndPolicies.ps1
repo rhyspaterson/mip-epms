@@ -64,6 +64,7 @@ foreach ($label in $labels) {
     Assert-EPMSLabel `
         -DisplayName $label.LabelDisplayName `
         -Tooltip $label.Tooltip `
+        -DocumentMarkingText $label.DocumentMarkingText `
         -Hierarchy $label.Hierarchy `
         -ParentLabelDisplayName $label.ParentLabel       
 

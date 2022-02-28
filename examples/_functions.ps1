@@ -94,6 +94,7 @@ function Assert-EPMSLabel {
     param(
         [string] $DisplayName,
         [string] $Tooltip,
+        [string] $DocumentMarkingText,
         [string] $Hierarchy,
         [string] $ParentLabelDisplayName
       )
@@ -128,10 +129,14 @@ function Assert-EPMSLabel {
             -Tooltip $Tooltip `
             -ApplyContentMarkingFooterEnabled $true `
             -ApplyContentMarkingFooterAlignment 'Center' `
-            -ApplyContentMarkingFooterText $DisplayName `
+            -ApplyContentMarkingFooterText $DocumentMarkingText `
+            -ApplyContentMarkingFooterFontSize 12 `
+            -ApplyContentMarkingFooterFontColor '#ef233c' `
             -ApplyContentMarkingHeaderEnabled $true `
             -ApplyContentMarkingHeaderAlignment 'Center' `
-            -ApplyContentMarkingHeaderText $DisplayName `
+            -ApplyContentMarkingHeaderText $DocumentMarkingText `
+            -ApplyContentMarkingHeaderFontSize 12 `
+            -ApplyContentMarkingHeaderFontColor '#ef233c' `
             -ContentType 'File, Email, Site, UnifiedGroup, PurviewAssets'
     }
 

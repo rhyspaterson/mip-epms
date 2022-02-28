@@ -13,6 +13,7 @@ $labels = [PSCustomObject]@(
         HeaderExample       = "VER=2018.3, NS=gov.au, SEC=UNOFFICIAL, ORIGIN=jane.doe@contoso.gov.au"
         SubjectRegex        = "(?im)sec=unofficial\u002C"
         SubjectExample      = "[SEC=UNOFFICIAL]"
+        DocumentMarkingText = "UNOFFICIAL"        
         Hierarchy           = "Root"
     }
     [PSCustomObject]@{
@@ -29,7 +30,8 @@ $labels = [PSCustomObject]@(
         HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL, ORIGIN=jane.doe@contoso.gov.au"
         ParentLabel         = "OFFICIAL [Parent]"
         SubjectRegex        = "(?im)sec=official\u002C"
-        SubjectExample      = "[SEC=OFFICIAL]"        
+        SubjectExample      = "[SEC=OFFICIAL]"   
+        DocumentMarkingText = "OFFICIAL"
         Hierarchy           = "HasParent"
     }    
     [PSCustomObject]@{
@@ -39,10 +41,23 @@ $labels = [PSCustomObject]@(
         HeaderRegex         = "(?im)(sec=official:sensitive)(?!\u002C\saccess)"   
         HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ORIGIN=jane.doe@contoso.gov.au"
         SubjectRegex        = "(?im)(sec=official:sensitive)(?!\u002C\saccess)"
-        SubjectExample      = "[SEC=OFFICIAL:Sensitive]"           
+        SubjectExample      = "[SEC=OFFICIAL:Sensitive]"
+        DocumentMarkingText = "OFFICIAL:Sensitive"      
         ParentLabel         = "OFFICIAL [Parent]"
         Hierarchy           = "HasParent"
     } 
+    [PSCustomObject]@{
+        Identifier          = 'official-sensitive-legislative-secrecy'
+        LabelDisplayName    = "OFFICIAL - Sensitive - Legislative-Secrecy"
+        Tooltip             = "TBC"
+        HeaderRegex         = "(?im)(sec=official:sensitive\u002C\saccess=legislative-secrecy)"
+        HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Legal-Privilege, ORIGIN=jane.doe@contoso.gov.au"
+        SubjectRegex        = "(?im)(sec=official:sensitive\u002C\saccess=legislative-secrecy)"
+        SubjectExample      = "[SEC=OFFICIAL:Sensitive, ACCESS=Legislative-Secrecy]"   
+        DocumentMarkingText = "OFFICIAL:Sensitive//Legislative-Secrecy"         
+        ParentLabel         = "OFFICIAL [Parent]"
+        Hierarchy           = "HasParent"
+    }
     [PSCustomObject]@{
         Identifier          = 'official-sensitive-legal-privilege'
         LabelDisplayName    = "OFFICIAL - Sensitive - Legal Privilege"
@@ -50,10 +65,11 @@ $labels = [PSCustomObject]@(
         HeaderRegex         = "(?im)(sec=official:sensitive\u002C\saccess=legal-privilege)"
         HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Legal-Privilege, ORIGIN=jane.doe@contoso.gov.au"
         SubjectRegex        = "(?im)(sec=official:sensitive\u002C\saccess=legal-privilege)"
-        SubjectExample      = "[SEC=OFFICIAL:Sensitive, ACCESS=Legal-Privilege]"            
+        SubjectExample      = "[SEC=OFFICIAL:Sensitive, ACCESS=Legal-Privilege]"   
+        DocumentMarkingText = "OFFICIAL:Sensitive//Legal-Privilege"         
         ParentLabel         = "OFFICIAL [Parent]"
         Hierarchy           = "HasParent"
-    }  
+    }       
     [PSCustomObject]@{
         Identifier          = 'official-sensitive-personal-privacy'
         LabelDisplayName    = "OFFICIAL - Sensitive - Personal Privacy"
@@ -61,10 +77,11 @@ $labels = [PSCustomObject]@(
         HeaderRegex         = "(?im)(sec=official:sensitive\u002C\saccess=personal-privacy)"
         HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Personal-Privacy, ORIGIN=jane.doe@contoso.gov.au"
         SubjectRegex        = "(?im)(sec=official:sensitive\u002C\saccess=personal-privacy)"
-        SubjectExample      = "[SEC=OFFICIAL:Sensitive, ACCESS=Personal-Privacy]"           
+        SubjectExample      = "[SEC=OFFICIAL:Sensitive, ACCESS=Personal-Privacy]"     
+        DocumentMarkingText = "OFFICIAL:Sensitive//Personal-Privacy"
         ParentLabel         = "OFFICIAL [Parent]"
         Hierarchy           = "HasParent"
-    }
+    }  
     [PSCustomObject]@{
         Identifier          = 'protected-parent'
         LabelDisplayName    = "PROTECTED [Parent]"
@@ -74,12 +91,49 @@ $labels = [PSCustomObject]@(
     [PSCustomObject]@{
         Identifier          = 'protected'
         LabelDisplayName    = "PROTECTED"
-        Tooltip             = "Damage to the national interest, organisations or individuals."
+        Tooltip             = "High business impact. Damage to the national interest, organisations or individuals."
         HeaderRegex         = "(?im)(sec=protected)(?!\u002C\saccess)"
         HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ORIGIN=jane.doe@contoso.gov.au"
         SubjectRegex        = "(?im)(sec=protected)(?!\u002C\saccess)"
-        SubjectExample      = "[SEC=PROTECTED]"          
+        SubjectExample      = "[SEC=PROTECTED]"    
+        DocumentMarkingText = "PROTECTED"      
         ParentLabel         = "PROTECTED [Parent]"
         Hierarchy           = "HasParent"
-    }        
+    }
+    [PSCustomObject]@{
+        Identifier          = 'protected-legal-privilege'
+        LabelDisplayName    = "PROTECTED - Legal-Privilege"
+        Tooltip             = "High business impact. Damage to the national interest, organisations or individuals."
+        HeaderRegex         = "(?im)(sec=protected\u002C\saccess=legal-privilege)"
+        HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ACCESS=Legal-Privilege, ORIGIN=jane.doe@contoso.gov.au"
+        SubjectRegex        = "(?im)(sec=protected\u002C\saccess=legal-privilege)"
+        SubjectExample      = "[SEC=PROTECTED, ACCESS=Legal-Privilege]"    
+        DocumentMarkingText = "PROTECTED//Legal-Privilege"      
+        ParentLabel         = "PROTECTED [Parent]"
+        Hierarchy           = "HasParent"
+    }
+    [PSCustomObject]@{
+        Identifier          = 'protected-legislative-secrecy'
+        LabelDisplayName    = "PROTECTED - Legislative-Secrecy"
+        Tooltip             = "High business impact. Damage to the national interest, organisations or individuals."
+        HeaderRegex         = "(?im)(sec=protected\u002C\saccess=legislative-secrecy)"
+        HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ACCESS=Legal-Privilege, ORIGIN=jane.doe@contoso.gov.au"
+        SubjectRegex        = "(?im)(sec=protected\u002C\saccess=legislative-secrecy)"
+        SubjectExample      = "[SEC=PROTECTED, ACCESS=Legislative-Secrecy]"    
+        DocumentMarkingText = "PROTECTED//Legislative-Secrecy"      
+        ParentLabel         = "PROTECTED [Parent]"
+        Hierarchy           = "HasParent"
+    }
+    [PSCustomObject]@{
+        Identifier          = 'protected-personal-privacy'
+        LabelDisplayName    = "PROTECTED - Personal-Privacy"
+        Tooltip             = "High business impact. Damage to the national interest, organisations or individuals."
+        HeaderRegex         = "(?im)(sec=protected\u002C\saccess=personal-privacy)"
+        HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ACCESS=Legal-Privilege, ORIGIN=jane.doe@contoso.gov.au"
+        SubjectRegex        = "(?im)(sec=protected\u002C\saccess=personal-privacy)"
+        SubjectExample      = "[SEC=PROTECTED, ACCESS=Personal-Privacy]"    
+        DocumentMarkingText = "PROTECTED//Personal-Privacy"      
+        ParentLabel         = "PROTECTED [Parent]"
+        Hierarchy           = "HasParent"
+    }           
 )

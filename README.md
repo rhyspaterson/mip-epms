@@ -29,3 +29,27 @@ The focus is primarially to support Outlook, cross-platform, using the native (n
 - [ ] Something about calendars
 - [ ] Something about inheritance
 
+# Getting started
+
+For the bold, you can reference the [Create-SensitivityLabelsAndPolicies.ps1](examples/Create-SensitivityLabelsAndPolicies.ps1) PowerShell script that will provision a set of sensitivity labels and their supporting configuration. This for the most part assumes you are operating in a development environment. Simply provide it with the certificate thumbprint, app registration and tenancy name as configuired via [App-only authentication in EXO V2](https://docs.microsoft.com/en-us/powershell/exchange/app-only-auth-powershell-v2?view=exchange-ps).
+
+```C#
+.\Create-SensitivityLabels.ps1 `
+    -certificateThumbprint 'CFE601DF99EC017EAA19D8853004873B5B46DBBA' `
+    -appId "07f8ec11-b3e4-4484-8af4-1b02c42f7d4a" `
+    -tenant "contoso.onmicrosoft.com"
+```
+
+The labels are defined in the [_labels.ps1](examples/_labels.ps1) file and use the following structure.
+
+```
+Identifier          = the unique identifier for this label within the object
+LabelDisplayName    = The display name to use in thesensitivity label
+Tooltip             = The tooltip to present
+HeaderRegex         = The regular expression to match the x-protective-marking header
+HeaderExample       = An example of the x-protective-marking header for unit tests
+SubjectRegex        = The regular expression to match the subject
+SubjectExample      = An example of the subject for unit tests
+DocumentMarkingText = The text value to inject into content marking        
+Hierarchy           = Where the label sits in the hierarchy
+```

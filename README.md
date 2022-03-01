@@ -52,21 +52,21 @@ Let's create a label via `New-Label`:
 
 ```powershell
 $label = New-Label `
-            -DisplayName 'UNOFFICIAL' `
-            -Name $(New-Guid) `
-            -Comment 'Provides EPMS support in Microsoft 365' `
-            -Tooltip 'No damage. This information does not form part of official duty.' `
-            -ApplyContentMarkingFooterEnabled $true `
-            -ApplyContentMarkingFooterAlignment 'Center' `
-            -ApplyContentMarkingFooterText 'UNOFFICIAL' `
-            -ApplyContentMarkingFooterFontSize 12 `
-            -ApplyContentMarkingFooterFontColor '#ef233c' `
-            -ApplyContentMarkingHeaderEnabled $true `
-            -ApplyContentMarkingHeaderAlignment 'Center' `
-            -ApplyContentMarkingHeaderText 'UNOFFICIAL' `
-            -ApplyContentMarkingHeaderFontSize 12 `
-            -ApplyContentMarkingHeaderFontColor '#ef233c' `
-            -ContentType 'File, Email, Site, UnifiedGroup, PurviewAssets'
+    -DisplayName 'UNOFFICIAL' `
+    -Name $(New-Guid) `
+    -Comment 'Provides EPMS support in Microsoft 365' `
+    -Tooltip 'No damage. This information does not form part of official duty.' `
+    -ApplyContentMarkingFooterEnabled $true `
+    -ApplyContentMarkingFooterAlignment 'Center' `
+    -ApplyContentMarkingFooterText 'UNOFFICIAL' `
+    -ApplyContentMarkingFooterFontSize 12 `
+    -ApplyContentMarkingFooterFontColor '#ef233c' `
+    -ApplyContentMarkingHeaderEnabled $true `
+    -ApplyContentMarkingHeaderAlignment 'Center' `
+    -ApplyContentMarkingHeaderText 'UNOFFICIAL' `
+    -ApplyContentMarkingHeaderFontSize 12 `
+    -ApplyContentMarkingHeaderFontColor '#ef233c' `
+    -ContentType 'File, Email, Site, UnifiedGroup, PurviewAssets'
 ```
 
 Here we are defining the display name and guidance for those leveraging it. We generate a random GUID for the name, as our label purpose may change in the future. We're also enabling content marking, and making it available to all of our files and emails, our SharePoint sites and modern groups, and even Azure Purview. We want to use this label everywhere, so we can bank the benefits of integrated data classification. Now we just need to deploy it.
@@ -74,17 +74,17 @@ Here we are defining the display name and guidance for those leveraging it. We g
 Create a new label policy via `New-LabelPolicy`:
 
 ```powershell
-$policy = New-LabelPolicy `
-            -Name 'Deploy labels to all staff'`
-            -Labels $label.name `
-            -ExchangeLocation 'All' `
-            -Settings @{
-                powerbimandatory = $true
-                requiredowngradejustification = $true
-                siteandgroupmandatory = $true
-                mandatory = $true
-                disablemandatoryinoutlook = $false
-            }
+New-LabelPolicy `
+    -Name 'Deploy labels to all staff'`
+    -Labels $label.name `
+    -ExchangeLocation 'All' `
+    -Settings @{
+        powerbimandatory = $true
+        requiredowngradejustification = $true
+        siteandgroupmandatory = $true
+        mandatory = $true
+        disablemandatoryinoutlook = $false
+    }
 ```
 
 Here we deploy a new label policy to all staff via the `ExchangeLocation` property, and include advanced settings to enforce mandatory labeling. We include the label we just created as a label. We can easily include multiple labels through that property as an `array`.
@@ -93,12 +93,12 @@ Here we deploy a new label policy to all staff via the `ExchangeLocation` proper
 
 Unlike traditional reliance on client-side tools for classification data, we want to ensure data is identified and classified appropriately as soon as it is identified, server-side. This is one of the greatest benefits of adopting and integrated data classification model that functions on both the client and server side. From the perspective of mail, particularly for higher classifications, we want to apply a sensitivity label as soon as it arrives in our Exchange organisation. This ensures our business processes are enforced regardless of to whom the mail is sent, or how it is accessed. We can achieve this through auto-labelling by inspecting the `x-protective-marking` header and applying the appropriate sensitivity label.
 
-First, [we deploy an auto-labelling policy](https://docs.microsoft.com/en-us/powershell/module/exchange/new-autosensitivitylabelpolicy) that is assocaited with our classificaiton or protective marking via `New-AutoSensitivityLabelPolicy`.
+First, [we deploy an auto-labelling policy](https://docs.microsoft.com/en-us/powershell/module/exchange/new-autosensitivitylabelpolicy) that is assocaited with our classificaiton or protective marking via the `New-AutoSensitivityLabelPolicy` cmdlet.
 
 ```powershell
 $policy = New-AutoSensitivityLabelPolicy `
     -Name "Auto-label 'unofficial' mail" `
-    -ApplySensitivityLabel $label.Guid `
+    -ApplySensitivityLabel $($label.Guid) `
     -ExchangeLocation 'All' `
     -OverwriteLabel $true `
     -Mode 'TestWithoutNotifications'
@@ -106,25 +106,23 @@ $policy = New-AutoSensitivityLabelPolicy `
 
 Here we define a new policy that applies our previously created label (via it's GUID). We specify everywhere in Exchange, overwrite any existing labels, and set the `mode` to `TestWithoutNotifications`. This allows us to deploy the policy but simulate the result without actually applying the label. Once we're happy, we can shift the `mode` to `Enable`.
 
-Then, we define and apply the rule that actually fires the auto-labelling policy. 
+Then, [we define and apply the rule](https://docs.microsoft.com/en-us/powershell/module/exchange/new-autosensitivitylabelrule) that actually fires the auto-labelling policy via the `New-AutoSensitivityLabelRule` cmdlet. 
 
 ```powershell
 New-AutoSensitivityLabelRule `
     -Name "Detect x-header for 'unofficial'" `
     -HeaderMatchesPatterns @{"x-protective-marking" =  "(?im)sec=unofficial\u002C"} `
     -Workload "Exchange" `
-    -Policy $policy.name
+    -Policy $($policy.name)
 ```
 
 We leverage regular expressions to pattern match our classification in the x-header of the mail, and associate with the previous policy. For those new to the wild world of regular expressions, here we are saying:
 
-```
-(?im): case insensitive, match across multiple lines
-sec=unofficial: match the characters sec=unofficial literally
-\u002C: match a comma
-```
+- `(?im)`: case insensitive, match across multiple lines
+- `sec=unofficial`: match the characters sec=unofficial literally
+- `\u002C`: match a comma
 
-Putting it all together gives us `(?im)sec=unofficial\u002C`, which will match the string `sec=unofficial,` in the `x-protective-marking` header. We must be creative here, as we are limited in our ability to use advanced concepts like negative lookaheads in the engine that is provided to us via Microsoft 365. Assuming the organisation implements the `x-protective-marking` header to specification, this regex will do the job.
+Putting it all together gives us `(?im)sec=unofficial\u002C`, which will match the string `sec=unofficial,` in the `x-protective-marking` header. Although not the greatest expression, we must be creative here as we are limited in our ability to use advanced concepts (like negative lookaheads) in the regex engine that is provided to us via Microsoft 365. Assuming the organisation implements the `x-protective-marking` header to specification, this regex will do the job.
 
 ### Configure the data loss prevention policies
 

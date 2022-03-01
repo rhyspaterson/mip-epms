@@ -58,6 +58,9 @@ if ($WaitForPendingDeletions) {
     }    
 }
 
+$labels = Get-EPMSLabels
+$labelPolicies = Get-EPMSLabelPolicies
+
 # Enumerate the configuration and provision our labels, auto-labelling policies, and dlp policies.
 foreach ($label in $labels) {
 

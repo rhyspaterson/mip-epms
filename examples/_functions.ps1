@@ -148,6 +148,83 @@ function Assert-EPMSLabel {
     }
 }
 
+<#
+Workload                     : Exchange, SharePoint, OneDriveForBusiness, Skype, ModernGroup
+#>
+
+
+function Assert-EPMSLabelPolicy {
+    param(
+        [string] $DisplayName,
+        [array] $Labels,
+        [boolean] $Mandatory,
+        [string] $DeployTo 
+    )
+
+    [array] $labelGuids = $null
+
+     # Check each of the labels we need to add to the policies exist
+    ForEach ($label in $Labels) {
+        if (-not($label = Get-Label | Where-Object { ($_.DisplayName -eq $label) -and ($_.Mode -ne 'PendingDeletion') })) {
+            Write-Log -Message "Could not find label '$label'." -Level 'Warning'
+            throw
+        } else {
+            $labelGuids += $label.Name
+        }
+    }
+
+    # Build the complex settings objects
+    $complexSettings = @{
+        powerbimandatory = $true
+        requiredowngradejustification = $true
+        siteandgroupmandatory = $true
+        mandatory = $true
+        disablemandatoryinoutlook = $false
+    }
+
+    # Check if the auto-labeling policy already exists, updating if it so.    
+    if($policy = Get-LabelPolicy  | Where-Object { ($_.Name -eq $DisplayName) }) {
+        if ($policy.Mode -eq 'PendingDeletion') {
+            Write-Log -Message "Label policy '$DisplayName' exists in a pending deletion state. Cannot update." -Level 'Warning'
+            return
+        } else {
+            Write-Log -Message "Label policy '$DisplayName' exists, updating."
+
+            if ($DeployTo -eq 'All') {
+                Set-LabelPolicy `
+                    -Identity $DisplayName `
+                    -Settings $complexSettings `
+                    | Out-Null
+            } else {
+                $distributionGroup = Get-DistributionGroup -Identity $DeployTo 
+                Set-LabelPolicy `
+                    -Identity $DisplayName `
+                    -Settings $complexSettings `
+                    | Out-Null
+            }
+        }
+    } else {
+
+        Write-Log -Message "Creating label policy: $DisplayName"
+
+        if ($DeployTo -eq 'All') {
+            New-LabelPolicy `
+                -Name $DisplayName `
+                -Labels $labelGuids `
+                -Settings $complexSettings `
+                -ExchangeLocation 'All' `
+                | Out-Null
+        } else {
+            $distributionGroup = Get-DistributionGroup -Identity $DeployTo 
+            New-LabelPolicy `
+                -Name $DisplayName `
+                -Settings $complexSettings `
+                -Labels $labelGuids `
+                -ModernGroupLocation $distributionGroup.PrimarySmtpAddress `
+                | Out-Null        
+        }
+    }
+}
 
 function Assert-AutoSensitivityLabelPolicyAndRule {
     param(

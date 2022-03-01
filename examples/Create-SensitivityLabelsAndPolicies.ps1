@@ -90,8 +90,23 @@ foreach ($label in $labels) {
     Write-Log -Message ""
 }
 
+# Enumerate the configuration.
+foreach ($policy in $labelPolicies) {
+
+    Write-Log -Message "Enumerating: $($policy.Identifier)" -Level 'Success'
+
+    # Configure the sensitivity label policy.
+    Assert-EPMSLabelPolicy `
+        -DisplayName $policy.DisplayName `
+        -Labels (($labels | Where-Object { $_.LabelPolicy -eq $policy.Identifier}).LabelDisplayName) `
+        -DeployTo $policy.DeployTo
+
+    Write-Log -Message ""
+
+}
+
 # Create the ETR to strip encryption for mail send to trusted domains.
-Assert-DecryptionTransportRule -DisplayName 'EPMS - Strip encryption for outgoing emails and attachments' -TrustedDomains $authorisedDomains
+#Assert-DecryptionTransportRule -DisplayName 'EPMS - Strip encryption for outgoing emails and attachments' -TrustedDomains $authorisedDomains
 
 # Disconnect!
 Assert-ServiceConnection -Disconnect

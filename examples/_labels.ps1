@@ -15,12 +15,14 @@ $labels = [PSCustomObject]@(
         SubjectExample      = "[SEC=UNOFFICIAL]"
         DocumentMarkingText = "UNOFFICIAL"        
         Hierarchy           = "NoParent"
+        LabelPolicy         = 'standard-labels'
     }
     [PSCustomObject]@{
         Identifier          = "official-parent"
         LabelDisplayName    = "OFFICIAL [Parent]"
         Tooltip             = "Parent label for visual purposes."
         Hierarchy           = "IsParent"
+        LabelPolicy         = 'standard-labels'
     }     
     [PSCustomObject]@{
         Identifier          = "official"
@@ -33,6 +35,7 @@ $labels = [PSCustomObject]@(
         SubjectExample      = "[SEC=OFFICIAL]"   
         DocumentMarkingText = "OFFICIAL"
         Hierarchy           = "HasParent"
+        LabelPolicy         = 'standard-labels'
     }    
     [PSCustomObject]@{
         Identifier          = 'official-sensitive'
@@ -45,6 +48,7 @@ $labels = [PSCustomObject]@(
         DocumentMarkingText = "OFFICIAL:Sensitive"      
         ParentLabel         = "OFFICIAL [Parent]"
         Hierarchy           = "HasParent"
+        LabelPolicy         = 'standard-labels'
     } 
     [PSCustomObject]@{
         Identifier          = 'official-sensitive-legislative-secrecy'
@@ -57,6 +61,7 @@ $labels = [PSCustomObject]@(
         DocumentMarkingText = "OFFICIAL:Sensitive//Legislative-Secrecy"         
         ParentLabel         = "OFFICIAL [Parent]"
         Hierarchy           = "HasParent"
+        LabelPolicy         = 'standard-labels'
     }
     [PSCustomObject]@{
         Identifier          = 'official-sensitive-legal-privilege'
@@ -69,6 +74,7 @@ $labels = [PSCustomObject]@(
         DocumentMarkingText = "OFFICIAL:Sensitive//Legal-Privilege"         
         ParentLabel         = "OFFICIAL [Parent]"
         Hierarchy           = "HasParent"
+        LabelPolicy         = 'standard-labels'
     }       
     [PSCustomObject]@{
         Identifier          = 'official-sensitive-personal-privacy'
@@ -81,12 +87,14 @@ $labels = [PSCustomObject]@(
         DocumentMarkingText = "OFFICIAL:Sensitive//Personal-Privacy"
         ParentLabel         = "OFFICIAL [Parent]"
         Hierarchy           = "HasParent"
+        LabelPolicy         = 'standard-labels'
     }  
     [PSCustomObject]@{
         Identifier          = 'protected-parent'
         LabelDisplayName    = "PROTECTED [Parent]"
         Tooltip             = "Parent label for visual purposes."
         Hierarchy           = "IsParent"
+        LabelPolicy         = 'protected-labels'
     }     
     [PSCustomObject]@{
         Identifier          = 'protected'
@@ -98,7 +106,7 @@ $labels = [PSCustomObject]@(
         SubjectExample      = "[SEC=PROTECTED]"    
         DocumentMarkingText = "PROTECTED"      
         ParentLabel         = "PROTECTED [Parent]"
-        Hierarchy           = "HasParent"
+        LabelPolicy         = 'protected-labels'
     }
     [PSCustomObject]@{
         Identifier          = 'protected-legal-privilege'
@@ -110,7 +118,7 @@ $labels = [PSCustomObject]@(
         SubjectExample      = "[SEC=PROTECTED, ACCESS=Legal-Privilege]"    
         DocumentMarkingText = "PROTECTED//Legal-Privilege"      
         ParentLabel         = "PROTECTED [Parent]"
-        Hierarchy           = "HasParent"
+        LabelPolicy         = 'protected-labels'
     }
     [PSCustomObject]@{
         Identifier          = 'protected-legislative-secrecy'
@@ -122,7 +130,7 @@ $labels = [PSCustomObject]@(
         SubjectExample      = "[SEC=PROTECTED, ACCESS=Legislative-Secrecy]"    
         DocumentMarkingText = "PROTECTED//Legislative-Secrecy"      
         ParentLabel         = "PROTECTED [Parent]"
-        Hierarchy           = "HasParent"
+        LabelPolicy         = 'protected-labels'
     }
     [PSCustomObject]@{
         Identifier          = 'protected-personal-privacy'
@@ -134,6 +142,19 @@ $labels = [PSCustomObject]@(
         SubjectExample      = "[SEC=PROTECTED, ACCESS=Personal-Privacy]"    
         DocumentMarkingText = "PROTECTED//Personal-Privacy"      
         ParentLabel         = "PROTECTED [Parent]"
-        Hierarchy           = "HasParent"
+        LabelPolicy         = 'protected-labels'
     }           
+)
+
+$labelPolicies = [PSCustomObject]@(
+    [PSCustomObject]@{
+        Identifier          = "standard-labels"
+        DisplayName         = "Deploy standard labels to all staff"
+        DeployTo            = 'All'
+    }
+    [PSCustomObject]@{
+        Identifier          = "protected-labels"
+        DisplayName         = "Deploy protected labels to cleared staff"
+        DeployTo            = 'protected-labels-mail-enabled-security-group'
+    }
 )

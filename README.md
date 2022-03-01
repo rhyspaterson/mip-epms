@@ -6,6 +6,8 @@ The focus is primarily to support Outlook using the native (non-AIP UL) client t
 
 Not all functionality that might be expected to be provided through third-party tools are currently supported. Note that unlike purely client-side solutions, controls are implemented either client or server-side, depending on the scenario. The intent is to leverage the information protection services available within Microsoft 365 to provide a functional and practical data protection capability that supports zero trust, and negates the requirement for traditional client-side or perimeter controls to protect information.
 
+**Note:** This is an unofficial, personal project developed for research purposes only.
+
 ## Components
 
 - [PowerShell 7+](https://github.com/PowerShell/PowerShell)
@@ -111,7 +113,7 @@ Then, [we define and apply the rule](https://docs.microsoft.com/en-us/powershell
 ```powershell
 New-AutoSensitivityLabelRule `
     -Name "Detect x-header for 'unofficial'" `
-    -HeaderMatchesPatterns @{"x-protective-marking" =  "(?im)sec=unofficial\u002C"} `
+    -HeaderMatchesPatterns @{"x-protective-marking" = "(?im)sec=unofficial\u002C"} `
     -Workload "Exchange" `
     -Policy $($policy.name)
 ```
@@ -187,7 +189,23 @@ Finally, we create the policy with both of the hashtables.
 
 ### Configure the exchange online transport rules
 
-TBC
+Adopting a position where classified data can be controlled through rights management will drastically improve data security. It also improves the end-user experience by allowing for the elimination of traditional perimeter controls in favour of those now afforded to us in the hybrid cloud. However, in some cases the impact of this approach may be undesirable. A major consideration with adopting encryption is how the rights management process integrates with the business processes for the organisation. 
+
+From this perspective, we may require the flexibility to decrypt our content for a given scenario. For example, some inter-organisation communication channels may be significantly impacted by the adoption of rights management and may in fact have compensating controls in place already. Having to authenticate or otherwise decrypt the content may not align with existing systems or processes. For this use case, we can apply transport rules to strip the encryption as required.
+
+We achieve this by [defining a new transport rule policy](https://docs.microsoft.com/en-us/powershell/module/exchange/new-transportrule).
+
+```powershell
+    New-TransportRule `
+        -Name 'Strip encryption for outgoing emails and attachments to trusted domains'`
+        -FromScope 'InOrganization' `
+        -RecipientDomainIs @('contoso-1.com', 'contoso-2.com') `
+        -RemoveOMEv2 $true `
+        -RemoveRMSAttachmentEncryption $true    
+}
+```
+
+Here we define a new policy that strips any encryption from mail and attachments, when sent from inside the Exchange organisation to a set of trusted domains.
 
 ## Complete Provisioning Example
 

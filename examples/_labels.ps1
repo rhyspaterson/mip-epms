@@ -55,7 +55,7 @@ $labels = [PSCustomObject]@(
         LabelDisplayName    = "OFFICIAL - Sensitive - Legislative-Secrecy"
         Tooltip             = "TBC"
         HeaderRegex         = "(?im)(sec=official:sensitive\u002C\saccess=legislative-secrecy)"
-        HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Legal-Privilege, ORIGIN=jane.doe@contoso.gov.au"
+        HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Legislative-Secrecy, ORIGIN=jane.doe@contoso.gov.au"
         SubjectRegex        = "(?im)(sec=official:sensitive\u002C\saccess=legislative-secrecy)"
         SubjectExample      = "[SEC=OFFICIAL:Sensitive, ACCESS=Legislative-Secrecy]"   
         DocumentMarkingText = "OFFICIAL:Sensitive//Legislative-Secrecy"         

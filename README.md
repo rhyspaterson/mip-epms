@@ -8,13 +8,13 @@ Not all functionality that might be expected to be provided through third-party 
 
 ## Components
 
-- PowerShell 7
+- [PowerShell 7+](https://github.com/PowerShell/PowerShell)
 - [App-only authentication in EXO V2](https://docs.microsoft.com/en-us/powershell/exchange/app-only-auth-powershell-v2?view=exchange-ps)
-- Sensitivity Labels
-- Encryption
-- Auto-labelling policies
-- Data loss prevention policies
-- Exchange Online transport rules
+- [Sensitivity Labels](https://docs.microsoft.com/en-us/microsoft-365/compliance/sensitivity-labels)
+- [Encryption](https://docs.microsoft.com/en-us/microsoft-365/compliance/encryption-sensitivity-labels)
+- [Auto-labelling policies](https://docs.microsoft.com/en-us/microsoft-365/compliance/apply-sensitivity-label-automatically)
+- [Data loss prevention policies](https://docs.microsoft.com/en-us/microsoft-365/compliance/dlp-learn-about-dlp)
+- [Exchange Online transport rules](https://docs.microsoft.com/en-us/exchange/security-and-compliance/mail-flow-rules/mail-flow-rules)
 
 ### Feature status
 
@@ -91,7 +91,40 @@ Here we deploy a new label policy to all staff via the `ExchangeLocation` proper
 
 ### Configure the auto-labelling policies
 
-TBC
+Unlike traditional reliance on client-side tools for classification data, we want to ensure data is identified and classified appropriately as soon as it is identified, server-side. This is one of the greatest benefits of adopting and integrated data classification model that functions on both the client and server side. From the perspective of mail, particularly for higher classifications, we want to apply a sensitivity label as soon as it arrives in our Exchange organisation. This ensures our business processes are enforced regardless of to whom the mail is sent, or how it is accessed. We can achieve this through auto-labelling by inspecting the `x-protective-marking` header and applying the appropriate sensitivity label.
+
+First, [we deploy an auto-labelling policy](https://docs.microsoft.com/en-us/powershell/module/exchange/new-autosensitivitylabelpolicy) that is assocaited with our classificaiton or protective marking via `New-AutoSensitivityLabelPolicy`.
+
+```powershell
+$policy = New-AutoSensitivityLabelPolicy `
+    -Name "Auto-label 'unofficial' mail" `
+    -ApplySensitivityLabel $label.Guid `
+    -ExchangeLocation 'All' `
+    -OverwriteLabel $true `
+    -Mode 'TestWithoutNotifications'
+```
+
+Here we define a new policy that applies our previously created label (via it's GUID). We specify everywhere in Exchange, overwrite any existing labels, and set the `mode` to `TestWithoutNotifications`. This allows us to deploy the policy but simulate the result without actually applying the label. Once we're happy, we can shift the `mode` to `Enable`.
+
+Then, we define and apply the rule that actually fires the auto-labelling policy. 
+
+```powershell
+New-AutoSensitivityLabelRule `
+    -Name "Detect x-header for 'unofficial'" `
+    -HeaderMatchesPatterns @{"x-protective-marking" =  "(?im)sec=unofficial\u002C"} `
+    -Workload "Exchange" `
+    -Policy $policy.name
+```
+
+We leverage regular expressions to pattern match our classification in the x-header of the mail, and associate with the previous policy. For those new to the wild world of regular expressions, here we are saying:
+
+```
+(?im): case insensitive, match across multiple lines
+sec=unofficial: match the characters sec=unofficial literally
+\u002C: match a comma
+```
+
+Putting it all together gives us `(?im)sec=unofficial\u002C`, which will match the string `sec=unofficial,` in the `x-protective-marking` header. We must be creative here, as we are limited in our ability to use advanced concepts like negative lookaheads in the engine that is provided to us via Microsoft 365. Assuming the organisation implements the `x-protective-marking` header to specification, this regex will do the job.
 
 ### Configure the data loss prevention policies
 
@@ -184,3 +217,7 @@ To whom the policy is deployed to. Can be one of:
 
 - `All`: the label is deployed to everyone.
 - `<group-name>`: the the name of the mail enabled security group to filter the policy to.
+
+### Regular Expressions
+
+TBC

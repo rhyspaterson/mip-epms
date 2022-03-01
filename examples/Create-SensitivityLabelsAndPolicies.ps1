@@ -58,7 +58,7 @@ if ($WaitForPendingDeletions) {
     }    
 }
 
-# Enumerate the configuration.
+# Enumerate the configuration and provision our labels, auto-labelling policies, and dlp policies.
 foreach ($label in $labels) {
 
     Write-Log -Message "Enumerating: $($label.Identifier)" -Level 'Success'
@@ -90,7 +90,7 @@ foreach ($label in $labels) {
     Write-Log -Message ""
 }
 
-# Enumerate the configuration.
+# Enumerate the configuration and provision our client side/manual labeling policies.
 foreach ($policy in $labelPolicies) {
 
     Write-Log -Message "Enumerating: $($policy.Identifier)" -Level 'Success'
@@ -106,7 +106,7 @@ foreach ($policy in $labelPolicies) {
 }
 
 # Create the ETR to strip encryption for mail send to trusted domains.
-#Assert-DecryptionTransportRule -DisplayName 'EPMS - Strip encryption for outgoing emails and attachments' -TrustedDomains $authorisedDomains
+Assert-DecryptionTransportRule -DisplayName 'EPMS - Strip encryption for outgoing emails and attachments' -TrustedDomains $authorisedDomains
 
 # Disconnect!
 Assert-ServiceConnection -Disconnect

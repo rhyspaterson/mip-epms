@@ -128,7 +128,62 @@ Check out the [regular expressions](https://github.com/rhyspaterson/mip-epms/#re
 
 ### Configure the data loss prevention policies
 
-TBC
+Although arguably an optional control and of questionable value, the appending of the protective marking to the mail subject is ubiquitous. We can achieve this by leveraging a data loss prevention rule that modifies our subject based on the attached sensitivity label. Once a label is applied within Microsoft 365, we have full confidence about the classification of the given email. In this respect, we may only choose then to modify the subject in more specific scenarios, such as for mail destined outside of the organisation. However, if we want full confidence the classification is correctly appended in any scenario, we can be more generic in our application. 
+
+First, [we define a dlp policy](https://docs.microsoft.com/en-us/powershell/module/exchange/new-dlpcompliancepolicy) that is associated with our sensitivity label via the `New-DlpCompliancePolicy` cmdlet.
+
+```powershell
+$policy = New-DlpCompliancePolicy `
+    -Name "Subject append 'unofficial' mail" `
+    -ExchangeLocation 'All' `
+    -Mode 'TestWithoutNotifications' | Out-Null
+```
+
+Here we define a new policy that applies everywhere in Exchange and sets the `mode` to `TestWithoutNotifications`. This allows us to deploy the policy but simulate the result without actually modifying the subject line. Once we're happy, we can shift the `mode` to `Enable`.
+
+Then, [we define and apply the rule](https://docs.microsoft.com/en-us/powershell/module/exchange/new-dlpcompliancerule) that actually fires the dlp policy via the `New-DlpComplianceRule` cmdlet. 
+
+```powershell
+# Build the first complex PswsHashtable to match on a label
+$complexSensitiveInformationRule = @(
+    @{
+        operator = "And"
+        groups = @(
+            @{
+                operator="Or"
+                name="Default"
+                labels = @(
+                    @{
+                        name="$($label.Name)";
+                        type="Sensitivity"
+                    } 
+                )
+            }
+        )
+    }
+)
+
+# Build the second complex PswsHashtable to perform the rewrite
+$complexModifySubjectRule = @{
+    patterns = "{\[SEC=.*?\]}"
+    ReplaceStrategy = 'Append'
+    SubjectText = $SubjectExample
+}
+
+# Create the policy
+New-DlpComplianceRule `
+    -Name "If 'unofficial', append subject" `
+    -Policy $policy.Name `
+    -ContentContainsSensitiveInformation $complexSensitiveInformationRule `
+    -ModifySubject $complexModifySubjectRule `
+    | Out-Null
+```
+
+This is a bit more advanced. First, we define the `PswsHashtable` for `ContentContainsSensitiveInformation`. This is a nested hashtable that defines the logic to fire any time a label with a given name is seen. We are re-using the `$label.name` attribute we generated previously. 
+
+Then, we define the `ModifySubject` rule, also a `PswsHashtable`. Here we leverage regular expressions again to find our visual marking, replace it with our desired text, and append it to the end of the of the subject. This single regex should do for any protective marking that meets the specificaiton.
+
+Finally, we create the policy with both of the hashtables.
 
 ### Configure the exchange online transport rules
 

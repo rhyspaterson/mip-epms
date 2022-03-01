@@ -114,7 +114,7 @@ Simply provide it with the certificate thumbprint, app registration and tenancy 
     -tenant "contoso.onmicrosoft.com"
 ```
 
-## Attributes
+### Label Attributes
 
 The labels are defined in the [_labels.ps1](examples/_labels.ps1) file and use the following defined structure.
 
@@ -161,3 +161,26 @@ Where in the sensitivity label hierarchy the label resides. Can be one of:
 ```ParentLabel```
 
 Optional. If the label is a child label as defined above through `HasParent`, then this specifies the name of the relevant parent label.
+
+```LabelPolicy```
+
+Optional. The assocaited labelling policy the label is assigned to. This is required to deploy the label to end users.
+
+### Policy Attributes
+
+The policies are also defined in the [_labels.ps1](examples/_labels.ps1) file and use the following defined structure.
+
+```Identifier```
+
+The identifier attribute is the unique name for the label within the object. You probably do not need to change this.
+
+```DisplayName```
+
+The display name of the sensitivity label policy.
+
+```DeployTo```
+
+To whom the policy is deployed to. Can be one of:
+
+- `All`: the label is deployed to everyone.
+- `<group-name>`: the the name of the mail enabled security group to filter the policy to.

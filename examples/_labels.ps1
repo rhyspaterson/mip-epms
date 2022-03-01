@@ -104,7 +104,8 @@ $labels = [PSCustomObject]@(
         HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ORIGIN=jane.doe@contoso.gov.au"
         SubjectRegex        = "(?im)(sec=protected)(?!\u002C\saccess)"
         SubjectExample      = "[SEC=PROTECTED]"    
-        DocumentMarkingText = "PROTECTED"      
+        DocumentMarkingText = "PROTECTED"
+        Hierarchy           = "HasParent"
         ParentLabel         = "PROTECTED [Parent]"
         LabelPolicy         = 'protected-labels'
     }
@@ -117,6 +118,7 @@ $labels = [PSCustomObject]@(
         SubjectRegex        = "(?im)(sec=protected\u002C\saccess=legal-privilege)"
         SubjectExample      = "[SEC=PROTECTED, ACCESS=Legal-Privilege]"    
         DocumentMarkingText = "PROTECTED//Legal-Privilege"      
+        Hierarchy           = "HasParent"
         ParentLabel         = "PROTECTED [Parent]"
         LabelPolicy         = 'protected-labels'
     }
@@ -129,6 +131,7 @@ $labels = [PSCustomObject]@(
         SubjectRegex        = "(?im)(sec=protected\u002C\saccess=legislative-secrecy)"
         SubjectExample      = "[SEC=PROTECTED, ACCESS=Legislative-Secrecy]"    
         DocumentMarkingText = "PROTECTED//Legislative-Secrecy"      
+        Hierarchy           = "HasParent"
         ParentLabel         = "PROTECTED [Parent]"
         LabelPolicy         = 'protected-labels'
     }
@@ -141,6 +144,7 @@ $labels = [PSCustomObject]@(
         SubjectRegex        = "(?im)(sec=protected\u002C\saccess=personal-privacy)"
         SubjectExample      = "[SEC=PROTECTED, ACCESS=Personal-Privacy]"    
         DocumentMarkingText = "PROTECTED//Personal-Privacy"      
+        Hierarchy           = "HasParent"
         ParentLabel         = "PROTECTED [Parent]"
         LabelPolicy         = 'protected-labels'
     }           

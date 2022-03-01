@@ -1,4 +1,4 @@
-# Add additiona; domains into here as required.
+# Add additional domains into here as required.
 $authorisedDomains = @(
     'contoso-1.com', 
     'contoso-2.com',

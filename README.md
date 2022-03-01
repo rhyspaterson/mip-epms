@@ -38,7 +38,7 @@ Not all functionality that might be expected to be provided through third-party 
 
 ## Getting started
 
-If you'd like to skip to coding part, check out the [complete provisioning example](https://github.com/rhyspaterson/mip-epms/#complete-provisioning-example). Otherwise, this will step through the approach in provisioning a label and the supporting configuration from scratch.
+If you'd like to skip to already-coded-part, check out the [complete provisioning example](https://github.com/rhyspaterson/mip-epms/#complete-provisioning-example). Otherwise, this will step through the approach in provisioning a label and the supporting configuration from scratch.
 
 ### Create our label
 
@@ -123,6 +123,8 @@ We leverage regular expressions to pattern match our classification in the x-hea
 - `\u002C`: match a comma
 
 Putting it all together gives us `(?im)sec=unofficial\u002C`, which will match the string `sec=unofficial,` in the `x-protective-marking` header. Although not the greatest expression, we must be creative here as we are limited in our ability to use advanced concepts (like negative lookaheads) in the regex engine that is provided to us via Microsoft 365. Assuming the organisation implements the `x-protective-marking` header to specification, this regex will do the job.
+
+Check out the [regular expressions](https://github.com/rhyspaterson/mip-epms/#regular-expressions) section below for more details.
 
 ### Configure the data loss prevention policies
 
@@ -218,4 +220,8 @@ To whom the policy is deployed to. Can be one of:
 
 ### Regular Expressions
 
-TBC
+The regular expressions are validated against their example via the [_labels.ps1](examples/_labels.Tests.ps1) Pester tests. This will pull the regular expressions as defined in the label structure above, and validate them against their examples. It also validates a negative match against the other labels. This provides a quick assurance that the regex is both valid and functional.
+
+```powershell
+Invoke-Pester -Output Diagnostic examples/_labels.Tests.ps1
+```

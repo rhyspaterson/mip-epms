@@ -4,14 +4,13 @@
 
 BeforeAll { 
 
-    # Import our common functions.
+    # Import our functions to test.
     Try {
-        . .\_labels.ps1 
+        . $PSCommandPath.Replace('.Tests.ps1','.ps1')
     } Catch {
         Throw 'Could not import pre-requisites ($_.Exception).'
     }
 
-    # Import our labels functions.
     $labels = Get-EPMSLabels    
 
     # Assign our test variables.
@@ -27,8 +26,6 @@ BeforeAll {
     $protectedLegalPrivilege = $labels | Where-Object { $_.Identifier -eq 'protected-legal-privilege'}
     $protectedLegislativeSecrecy = $labels | Where-Object { $_.Identifier -eq 'protected-legislative-secrecy'}
     $protectedPersonalPrivacy = $labels | Where-Object { $_.Identifier -eq 'protected-personal-privacy'}
-
-    
 }
 
 Describe "Get-Labels" {

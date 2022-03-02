@@ -42,12 +42,10 @@ Not all functionality that might be expected to be provided through third-party 
 - [ ] Allow the application of sensitivity labels to calendar objects `[m365-limitation]`.
 
 #### Other
-- [ ] To do: clarify other header insertion limitations `[readme-update]`.
 - [ ] To do: clarify inheritance `[readme-update]`.
 - [ ] To do: fix parent label display names `[readme-update, code-update]`.
 - [ ] To do: add additional protective markings (e.g., cabinet) `[code-update]`.
 - [ ] To do: add encryption steps `[readme-update, code-update]`.
-- [ ] To do: add outbound x-header steps `[readme-update, code-update]`.
 
 ## Getting started
 

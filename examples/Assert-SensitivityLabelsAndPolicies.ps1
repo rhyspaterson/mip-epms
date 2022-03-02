@@ -28,7 +28,7 @@ param (
     [Parameter(Mandatory=$false, ValueFromPipeline=$true)]
     [switch] $RemoveExistingLabelsAndPolicies,
     [Parameter(Mandatory=$false, ValueFromPipeline=$true)]
-    [switch] $WaitForPendingDeletions    
+    [switch] $WaitForPendingDeletions
 )
 
 # Import our common functions.

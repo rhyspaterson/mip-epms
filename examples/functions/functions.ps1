@@ -253,7 +253,7 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
                 -Identity $policyName `
                 -ApplySensitivityLabel $deployedLabel.Guid `
                 -AddExchangeLocation 'All' `
-                -Mode 'TestWithoutNotifications' `
+                -Mode 'Enable' `
                 -OverwriteLabel $true `
                 | Out-Null            
         }
@@ -265,7 +265,7 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
             -Name $policyName `
             -ApplySensitivityLabel $deployedLabel.Guid `
             -ExchangeLocation 'All' `
-            -Mode 'TestWithoutNotifications' `
+            -Mode 'Enable' `
             -OverwriteLabel $true `
             | Out-Null
     }
@@ -327,7 +327,7 @@ function Assert-DlpCompliancePolicyAndRule {
 
         Set-DlpCompliancePolicy `
             -Identity $policyName `
-            -Mode 'TestWithoutNotifications' | Out-Null        
+            -Mode 'Enable' | Out-Null        
 
     } else {
 
@@ -336,7 +336,7 @@ function Assert-DlpCompliancePolicyAndRule {
         New-DlpCompliancePolicy `
             -Name $policyName `
             -ExchangeLocation 'All' `
-            -Mode 'TestWithoutNotifications' | Out-Null
+            -Mode 'Enable' | Out-Null
 
     }
 

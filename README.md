@@ -239,11 +239,11 @@ Simply provide it with the certificate thumbprint, app registration and tenancy 
 
 ### Label attributes
 
-The labels are defined in the [configuration.ps1](examples/functions/configuration.ps1) file and use the following defined structure.
+The labels are defined in the [configuration.ps1](examples/functions/configuration.ps1) file. For a first run in a demo or dev environment, you shouldn't need to modify it. But, if you'd like to get stuck into it, the properties leverage the following defined structure.
 
 ```Identifier```
 
-The identifier attribute is the unique name for the label within the object. You probably do not need to change this.
+The identifier attribute is the unique name for the label within the PowerShell object. You probably do not need to change this, and I use it a bit inconsistently. If you add a new label, make sure you add a unique identifier for it that makes sense to you.
 
 ```LabelDisplayName```
 

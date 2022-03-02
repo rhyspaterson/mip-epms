@@ -2,8 +2,8 @@ name: Run tests
 on:
   push:
     paths:
-      - 'examples\functions\configuration.ps1'
-      - 'examples\tests\configuration.Tests.ps1'
+      - 'examples/functions/configuration.ps1'
+      - 'examples/tests/configuration.Tests.ps1'
 
 jobs:
   pester-test:

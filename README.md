@@ -50,7 +50,7 @@ Not all functionality that might be expected to be provided through third-party 
 
 If you'd like to skip to already-coded-part, check out the [complete provisioning example](https://github.com/rhyspaterson/mip-epms/#complete-provisioning-example). Otherwise, this will step through the approach in provisioning a label and the supporting configuration from scratch.
 
-Particularly if you are in an old or temporary tenant, ensure you have run `Execute-AzureAdLabelSync` and [enabled consent for Azure Purview](https://docs.microsoft.com/en-us/azure/purview/how-to-automatically-label-your-content#step-2-consent-to-use-sensitivity-labels-in-azure-purview) first.
+Particularly if you are in an old or temporary tenant, ensure you have run `Execute-AzureAdLabelSync` and [enabled consent for Azure Purview](https://docs.microsoft.com/en-us/azure/purview/how-to-automatically-label-your-content#step-2-consent-to-use-sensitivity-labels-in-azure-purview) first. You'll also need a recent version of the [ExchangeOnlineManagement](https://www.powershellgallery.com/packages/ExchangeOnlineManagement) module.
 
 ### Create our label
 
@@ -60,7 +60,7 @@ When a label is applied to content, it applies metadata for first and third-part
 
 There are two elements to sensitivity labels. The establishment of the label itself, and the policy that deploys the label. A priority hierarchy is used to define the sensitivity, the higher the number, the more sensitive it is. This facilitates supporting constructs such as the requirement to justify the downgrade of a label.
 
-Let's create a label via `New-Label`:
+Let's [create a label](https://docs.microsoft.com/en-us/powershell/module/exchange/new-label) via `New-Label`:
 
 ```powershell
 $label = New-Label `
@@ -83,7 +83,7 @@ $label = New-Label `
 
 Here we are defining the display name and guidance for those leveraging it. We generate a random GUID for the name, as our label purpose may change in the future. We're also enabling content marking, and making it available to all of our files and emails, our SharePoint sites and modern groups, and even Azure Purview. We want to use this label everywhere, so we can bank the benefits of integrated data classification. Now we just need to deploy it.
 
-Create a new label policy via `New-LabelPolicy`:
+Then, we [create a new label policy](https://docs.microsoft.com/en-us/powershell/module/exchange/new-labelpolicy) via `New-LabelPolicy`:
 
 ```powershell
 New-LabelPolicy `

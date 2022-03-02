@@ -146,7 +146,7 @@ First, [we define a dlp policy](https://docs.microsoft.com/en-us/powershell/modu
 $policy = New-DlpCompliancePolicy `
     -Name "Subject append 'unofficial' mail" `
     -ExchangeLocation 'All' `
-    -Mode 'TestWithoutNotifications' | Out-Null
+    -Mode 'TestWithoutNotifications'
 ```
 
 Here we define a new policy that applies everywhere in Exchange and sets the `mode` to `TestWithoutNotifications`. This allows us to deploy the policy but simulate the result without actually modifying the subject line. Once we're happy, we can shift the `mode` to `Enable`.
@@ -182,11 +182,10 @@ $complexModifySubjectRule = @{
 
 # Create the policy
 New-DlpComplianceRule `
-    -Name "If 'unofficial', append subject" `
-    -Policy $policy.Name `
+    -Name "If 'unofficial-test', append subject" `
+    -Policy $($policy.name) `
     -ContentContainsSensitiveInformation $complexSensitiveInformationRule `
     -ModifySubject $complexModifySubjectRule `
-    | Out-Null
 ```
 
 This is a bit more advanced. First, we define the `PswsHashtable` for `ContentContainsSensitiveInformation`. This is a nested hashtable that defines the logic to fire any time a label with a given name is seen. We are re-using the `$label.name` attribute we generated previously. 

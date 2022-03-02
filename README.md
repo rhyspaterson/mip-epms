@@ -324,6 +324,8 @@ Will wait for any pending deletions of the above to complete before proceeding. 
 
 The regular expressions in use are all defined in the [configuration.ps1](examples/functions/configuration.ps1) file for the given label. They are validated against their example via the [configuration.Tests.ps1](examples/tests/configuration.Tests.ps1) Pester tests. This will pull the regular expressions as defined in the label structure above and validate them against their examples. It also validates a negative match against the other labels. This provides a quick assurance that the regex as defined in the configuration is both valid and functional.
 
+GitHub Actions will run this for any modification to [configuration.ps1](examples/functions/configuration.ps1) or the associated test. You can also run this yourself via:
+
 ```powershell
 Invoke-Pester -Output Detailed .\examples\tests\configuration.Tests.ps1
 ```

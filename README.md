@@ -228,7 +228,7 @@ Here we define a new policy that strips any encryption from mail and attachments
 
 For the bold, you can reference the [C](examples/Assert-SensitivityLabelsAndPolicies.ps1) PowerShell script that will provision a set of sensitivity labels and their supporting configuration. This for the most part assumes you are operating in a development environment, but won't modify existing sensitivity labels just in case.
 
-Simply provide it with the certificate thumbprint, app registration and tenancy name as configured via [App-only authentication in EXO V2](https://docs.microsoft.com/en-us/powershell/exchange/app-only-auth-powershell-v2?view=exchange-ps), and off you go.
+Simply provide it with the certificate thumbprint, app registration and tenancy name as configured via [App-only authentication in EXO V2](https://docs.microsoft.com/en-us/powershell/exchange/app-only-auth-powershell-v2?view=exchange-ps), and off you go. Note that in it's current form, the script will deploy labels to all users in the tenant, and set the dlp and auto-labelling policies tp `enable` mode.
 
 ```PowerShell
 .\Assert-SensitivityLabelsAndPolicies.ps1 `
@@ -239,7 +239,7 @@ Simply provide it with the certificate thumbprint, app registration and tenancy 
 
 ### Label attributes
 
-The labels are defined in the [configuration.ps1](examples/functions/configuration.ps1) file. For a first run in a demo or dev environment, you shouldn't need to modify it. But, if you'd like to get stuck into it, the properties leverage the following defined structure.
+The labels are defined in the [configuration.ps1](examples/functions/configuration.ps1) file. For a first run in a demo or dev environment, you shouldn't need to modify it. But, if you'd like to get stuck into it, the properties leverage the following defined structure. 
 
 ```Identifier```
 

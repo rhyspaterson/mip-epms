@@ -37,6 +37,7 @@ Not all functionality that might be expected to be provided through third-party 
 - [ ] When manipulating the `x-protective-marking` header, variables cannot be inserted, such as a user principal name.
 - [ ] When manipulating the `x-protective-marking` header, the new header value cannot exceed 64 characters.
 - [ ] Allow the application of sensitivity labels to calendar objects.
+- [ ] To do: clarify other header insertion limitations.
 - [ ] To do: clarify inheritance.
 
 ## Getting started

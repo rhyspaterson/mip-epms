@@ -93,9 +93,9 @@ New-LabelPolicy `
 
 Here we deploy a new label policy to all staff via the `ExchangeLocation` property, and include advanced settings to enforce mandatory labeling. We include the label we just created as a label. We can easily include multiple labels through that property as an `array`.
 
-### Configure the auto-labelling policies
+### Configure the inbound auto-labelling policies
 
-Unlike traditional reliance on client-side tools for classification data, we want to ensure data is identified and classified appropriately as soon as it is identified, server-side. This is one of the greatest benefits of adopting and integrated data classification model that functions on both the client and server side. From the perspective of mail, particularly for higher classifications, we want to apply a sensitivity label as soon as it arrives in our Exchange organisation. This ensures our business processes are enforced regardless of to whom the mail is sent, or how it is accessed. We can achieve this through auto-labelling by inspecting the `x-protective-marking` header and applying the appropriate sensitivity label.
+Unlike traditional reliance on client-side tools for classification data, we want to ensure data is identified and classified appropriately as soon as it is identified, server-side. This is one of the greatest benefits of adopting and integrated data classification model that functions on both the client and server side. From the perspective of mail, particularly for higher classifications, we want to apply a sensitivity label as soon as it arrives in our Exchange organisation. This ensures our business processes are enforced regardless of to whom the mail is sent, or how it is accessed. We can achieve this through auto-labelling by inspecting the `x-protective-marking` header and applying the appropriate sensitivity label. This effectively ensures that all inbound mail (e.g., sent from outside the organisation) that has a valid protective marking applied, will also have an appropriate sensitivity label applied.
 
 First, [we deploy an auto-labelling policy](https://docs.microsoft.com/en-us/powershell/module/exchange/new-autosensitivitylabelpolicy) that is assocaited with our classificaiton or protective marking via the `New-AutoSensitivityLabelPolicy` cmdlet.
 
@@ -129,6 +129,10 @@ We leverage regular expressions to pattern match our classification in the x-hea
 Putting it all together gives us `(?im)sec=unofficial\u002C`, which will match the string `sec=unofficial,` in the `x-protective-marking` header. Although not the greatest expression, we must be creative here as we are limited in our ability to use advanced concepts (like negative lookaheads) in the regex engine that is provided to us via Microsoft 365. Assuming the organisation implements the `x-protective-marking` header to specification, this regex will do the job.
 
 Check out the [regular expressions](https://github.com/rhyspaterson/mip-epms/#regular-expressions) section below for more details.
+
+### Configure the outbound auto-labelling policies
+
+TBC
 
 ### Configure the data loss prevention policies
 
@@ -189,7 +193,11 @@ Then, we define the `ModifySubject` rule, also a `PswsHashtable`. Here we levera
 
 Finally, we create the policy with both of the hashtables.
 
-### Configure the exchange online transport rules
+### Configure encryption on the label/s
+
+TBC
+
+### Configure the exchange online transport rules to decrypt
 
 Adopting a position where classified data can be controlled through rights management will drastically improve data security. It also improves the end-user experience by allowing for the elimination of traditional perimeter controls in favour of those now afforded to us in the hybrid cloud. However, in some cases the impact of this approach may be undesirable. A major consideration with adopting encryption is how the rights management process integrates with the business processes for the organisation. 
 

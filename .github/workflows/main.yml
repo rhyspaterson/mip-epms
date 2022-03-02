@@ -4,6 +4,7 @@ on:
     paths:
       - 'examples/functions/configuration.ps1'
       - 'examples/tests/configuration.Tests.ps1'
+  workflow_dispatch
 
 jobs:
   pester-test:

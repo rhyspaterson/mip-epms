@@ -8,6 +8,8 @@ Not all functionality that might be expected to be provided through third-party 
 
 **Note:** This is an unofficial, personal project developed for research purposes only.
 
+[![Run tests](https://github.com/rhyspaterson/mip-epms/actions/workflows/main.yml/badge.svg)](https://github.com/rhyspaterson/mip-epms/actions/workflows/main.yml)
+
 ## Components
 
 - [PowerShell 7+](https://github.com/PowerShell/PowerShell)

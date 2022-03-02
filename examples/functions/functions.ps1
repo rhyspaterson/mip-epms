@@ -211,7 +211,7 @@ function Assert-EPMSLabelPolicy {
         } else {
             if (-not($distributionGroup = Get-DistributionGroup -Identity $DeployTo -ErrorAction SilentlyContinue)) {
                 Write-Log -Message "Could not find distribution group '$DeployTo', creating." -Level 'Warning'
-                $distributionGroup = New-DistributionGroup -Name $DeployTo -Type "Security" | Out-Null
+                $distributionGroup = New-DistributionGroup -Name $DeployTo -Type "Security"
             }
             New-LabelPolicy `
                 -Name $DisplayName `

@@ -158,12 +158,12 @@ function Get-EPMSLabelPolicies {
         [PSCustomObject]@{
             Identifier          = "standard-labels"
             DisplayName         = "Deploy standard labels to all staff"
-            DeployTo            = 'All'
+            DeployTo            = "All"
         }
         [PSCustomObject]@{
             Identifier          = "protected-labels"
             DisplayName         = "Deploy protected labels to cleared staff"
-            DeployTo            = 'protected-labels-mail-enabled-security-group'
+            DeployTo            = "protected-labels-mail-enabled-security-group"
         }
     )    
 }

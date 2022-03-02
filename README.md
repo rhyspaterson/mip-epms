@@ -6,7 +6,7 @@ The focus is primarily to support Outlook using the native (non-AIP UL) client t
 
 Not all functionality that might be expected to be provided through third-party tools are currently supported. Note that unlike purely client-side solutions, controls are implemented either client or server-side, depending on the scenario. The intent is to leverage the information protection services available within Microsoft 365 to provide a functional and practical data protection capability that supports zero trust, and negates the requirement for traditional client-side or perimeter controls to protect information.
 
-**Note:** This is an unofficial, personal project developed for research purposes only.
+**Note:** This is an unofficial, personal project developed for research purposes.
 
 [![Run tests](https://github.com/rhyspaterson/mip-epms/actions/workflows/main.yml/badge.svg)](https://github.com/rhyspaterson/mip-epms/actions/workflows/main.yml)
 
@@ -33,12 +33,16 @@ Not all functionality that might be expected to be provided through third-party 
 - [x] On mail send from Outlook, using a sensitivity label that applies rights management encryption, both the email body and any attachments cannot be decrypted for a given scenario  `[via etr]`.
 
 #### Not implemented
-- [ ] When downgrading a sensitivity label, the downgrade can not be prevented, only require justification.
-- [ ] When manipulating the `x-protective-marking` header, variables cannot be inserted, such as a user principal name.
-- [ ] When manipulating the `x-protective-marking` header, the new header value cannot exceed 64 characters.
-- [ ] Allow the application of sensitivity labels to calendar objects.
-- [ ] To do: clarify other header insertion limitations.
-- [ ] To do: clarify inheritance.
+- [ ] When downgrading a sensitivity label, the downgrade can not be prevented, only require justification `[m365-limitation]`.
+- [ ] When manipulating the `x-protective-marking` header, variables cannot be inserted, such as a user principal name `[m365-limitation]`.
+- [ ] When manipulating the `x-protective-marking` header, the new header value cannot exceed 64 characters `[m365-limitation]`.
+- [ ] Allow the application of sensitivity labels to calendar objects `[m365-limitation]`.
+
+#### Other
+- [ ] To do: clarify other header insertion limitations `[readme-update]`.
+- [ ] To do: clarify inheritance `[readme-update]`.
+- [ ] To do: fix parent label display names `[readme-update, code-update]`.
+- [ ] To do: add additional protective markings (e.g., cabinet) `[code-update]`.
 
 ## Getting started
 

@@ -190,8 +190,7 @@ function Assert-EPMSLabelPolicy {
                     -Identity $DisplayName `
                     -Settings $complexSettings `
                     | Out-Null
-            } else {
-                $distributionGroup = Get-DistributionGroup -Identity $DeployTo 
+            } else {                
                 Set-LabelPolicy `
                     -Identity $DisplayName `
                     -Settings $complexSettings `
@@ -210,7 +209,10 @@ function Assert-EPMSLabelPolicy {
                 -ExchangeLocation 'All' `
                 | Out-Null
         } else {
-            $distributionGroup = Get-DistributionGroup -Identity $DeployTo 
+            if (-not($distributionGroup = Get-DistributionGroup -Identity $DeployTo -ErrorAction SilentlyContinue)) {
+                Write-Log -Message "Could not find distribution group '$DeployTo', creating." -Level 'Warning'
+                $distributionGroup = New-DistributionGroup -Name $DeployTo -Type "Security" | Out-Null
+            }
             New-LabelPolicy `
                 -Name $DisplayName `
                 -Settings $complexSettings `

@@ -170,7 +170,7 @@ function Get-EPMSLabelPolicies {
 
 function Get-EPMSDomains {
     # Add additional domains into here as required.
-    return = @(
+    return @(
         'contoso-1.gov.au', 
         'contoso-2.gov.au',
         'contoso-3.gov.au',

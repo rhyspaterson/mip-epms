@@ -54,13 +54,14 @@ if ($WaitForPendingDeletions) {
     $deletionStatus = Get-PendingLabelAndPolicyDeletionStatus
     while ($deletionStatus -ne 'complete') {
         $deletionStatus = Get-PendingLabelAndPolicyDeletionStatus
+        Write-Log -Message "Deletion status still pending. Querying again in 30 seconds."
         Start-Sleep 30
     }    
 }
 
 $labels = Get-EPMSLabels
 $labelPolicies = Get-EPMSLabelPolicies
-
+<#
 # Enumerate the configuration and provision our labels, auto-labelling policies, and dlp policies.
 foreach ($label in $labels) {
 
@@ -92,7 +93,7 @@ foreach ($label in $labels) {
     
     Write-Log -Message ""
 }
-
+#>
 # Enumerate the configuration and provision our client side/manual labelling policies.
 foreach ($policy in $labelPolicies) {
 

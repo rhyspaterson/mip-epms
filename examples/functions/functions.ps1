@@ -177,7 +177,7 @@ function Assert-EPMSLabelPolicy {
         disablemandatoryinoutlook = $false
     }
 
-    # Check if the auto-labeling policy already exists, updating if it so.    
+    # Check if the auto-labelling policy already exists, updating if it so.    
     if($policy = Get-LabelPolicy  | Where-Object { ($_.Name -eq $DisplayName) }) {
         if ($policy.Mode -eq 'PendingDeletion') {
             Write-Log -Message "Label policy '$DisplayName' exists in a pending deletion state. Cannot update." -Level 'Warning'
@@ -230,7 +230,7 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
         [string]$HeaderRegex
     )
     
-    Write-Log -Message "Configuring auto-labeling for '$($LabelDisplayName)'."
+    Write-Log -Message "Configuring auto-labelling for '$($LabelDisplayName)'."
 
     # Ensure the sensitivity label we are linking the policy to exists.
     $deployedLabel = Get-Label | Where-Object { ($_.DisplayName -eq $LabelDisplayName) -and ($_.Mode -ne 'PendingDeletion') }
@@ -242,54 +242,56 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
     $policyName = "Auto-label '$($Identifier)' mail" # 64 characters, max
     $ruleName = "Detect x-header for '$($Identifier)'" # 64 characters, max    
 
-    # Check if the auto-labeling policy already exists, updating if it so.    
+    # Check if the auto-labelling policy already exists, updating if it so.    
     if($policy = Get-AutoSensitivityLabelPolicy | Where-Object { ($_.Name -eq $policyName) }) {
         if ($policy.Mode -eq 'PendingDeletion') {
-            Write-Log -Message "Auto-labeling policy '$policyName' exists in a pending deletion state. Cannot update." -Level 'Warning'
+            Write-Log -Message "Auto-labelling policy '$policyName' exists in a pending deletion state. Cannot update." -Level 'Warning'
             return
         } else {
-            Write-Log -Message "Auto-labeling policy '$policyName' exists, updating."
+            Write-Log -Message "Auto-labelling policy '$policyName' exists, updating."
             Set-AutoSensitivityLabelPolicy `
                 -Identity $policyName `
                 -ApplySensitivityLabel $deployedLabel.Guid `
                 -AddExchangeLocation 'All' `
-                -Mode 'Enable' `
                 -OverwriteLabel $true `
                 | Out-Null            
         }
     } else {
         # Thrash out a new one.
-        Write-Log -Message "Creating auto-labeling policy: $policyName"
+        Write-Log -Message "Creating auto-labelling policy: $policyName"
 
         New-AutoSensitivityLabelPolicy `
             -Name $policyName `
             -ApplySensitivityLabel $deployedLabel.Guid `
             -ExchangeLocation 'All' `
-            -Mode 'Enable' `
+            -Mode 'TestWithoutNotifications' `
             -OverwriteLabel $true `
             | Out-Null
     }
 
     if($rule = Get-AutoSensitivityLabelRule | Where-Object { ($_.Name -eq $ruleName) }) {
         if ($rule.Mode -eq 'PendingDeletion') {
-            Write-Log -Message "Auto-labeling rule '$ruleName' exists in a pending deletion state. Cannot update." -Level 'Warning'
+            Write-Log -Message "Auto-labelling rule '$ruleName' exists in a pending deletion state. Cannot update." -Level 'Warning'
+            return
+        } elseif ($policy.Mode -eq 'Enable') {
+            Write-Log -Message "The associated auto-labelling parent policy '$policyName' is in 'Enable' mode. Cannot update the associated rule unless the parent policy is in test mode. Skipping. " -Level 'Warning'
             return
         } else {
             # Note that we can't changed the linked ParentPolicyName without deleting and re-creating the rule.
             if ($rule.ParentPolicyName -eq $policyName) {
-                Write-Log -Message "Auto-labeling rule '$ruleName' exists, updating."
+                Write-Log -Message "Auto-labelling rule '$ruleName' exists, updating."
                 Set-AutoSensitivityLabelRule `
                     -Identity $ruleName `
                     -HeaderMatchesPatterns @{"x-protective-marking" =  $HeaderRegex} `
                     -Workload "Exchange" 
             } else {
-                Write-Log -Message "Auto-labeling rule '$ruleName' exists, but is not linked to '$policyName'. Cannot update." -Level 'Warning'
+                Write-Log -Message "Auto-labelling rule '$ruleName' exists, but is not linked to '$policyName'. Cannot update." -Level 'Warning'
                 return                
             }
         }
     } else {
         # Thrash out a new one.
-        Write-Log -Message "Creating auto-labeling policy rule: $ruleName"
+        Write-Log -Message "Creating auto-labelling policy rule: $ruleName"
 
         New-AutoSensitivityLabelRule `
             -Name $ruleName `
@@ -297,7 +299,6 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
             -Workload "Exchange" `
             -Policy "$policyName" | Out-Null
     }
-
 }
 
 function Assert-DlpCompliancePolicyAndRule {
@@ -320,14 +321,14 @@ function Assert-DlpCompliancePolicyAndRule {
     $policyName = "Subject append '$identifier' mail" # max 64 characters
     $ruleName = "If '$LabelDisplayName', append subject" # max 64 characters      
 
-    # Check if the auto-labeling policy already exists, updating if it so.    
-    if($policy = Get-DlpCompliancePolicy | Where-Object { ($_.Name -eq $policyName) }) {
+    # Check if the auto-labelling policy already exists, updating if it so.    
+    if(Get-DlpCompliancePolicy | Where-Object { ($_.Name -eq $policyName) }) {
         
         Write-Log -Message "Compliance policy '$policyName' exists, updating."
 
         Set-DlpCompliancePolicy `
             -Identity $policyName `
-            -Mode 'Enable' | Out-Null        
+            -Mode 'TestWithoutNotifications' | Out-Null        
 
     } else {
 
@@ -336,7 +337,7 @@ function Assert-DlpCompliancePolicyAndRule {
         New-DlpCompliancePolicy `
             -Name $policyName `
             -ExchangeLocation 'All' `
-            -Mode 'Enable' | Out-Null
+            -Mode 'TestWithoutNotifications' | Out-Null
 
     }
 
@@ -397,12 +398,54 @@ function Assert-DlpCompliancePolicyAndRule {
             | Out-Null
     }
 }
+
+function Assert-HeaderTransportRule {
+    param(
+        [string] $Identifier,
+        [string] $LabelDisplayName,
+        [string] $HeaderExample
+    )
+
+    Write-Log -Message "Configuring x-protective-marking header insertion for '$($LabelDisplayName)'."
+    
+    # Ensure the sensitivity label we are linking the policy to exists.
+    $deployedLabel = Get-SensitivityLabelByDisplayName -DisplayName $LabelDisplayName -ThrowIfMissing
+
+    if (-not($deployedLabel)) {
+        Throw "Could not get the deployed label details."
+    }
+
+    $ruleName = "EPMS - x-header for label '$($deployedLabel.guid)'" # max 64 characters
+    $comment = "This transport rule writes the relevant x-protective-marking header when mail flagged with the internal '$($deployedLabel.DisplayName)' sensitivity label is detected."
+
+    If (Get-TransportRule -Identity $ruleName -ErrorAction SilentlyContinue) {
+        Write-Log -Message "Transport rule '$ruleName' exists, updating."
+        Set-TransportRule `
+            -Identity $ruleName `
+            -HeaderMatchesMessageHeader 'msip_labels' `
+            -HeaderMatchesPatterns "(?im)$($deployedLabel.guid)" `
+            -SetHeaderName 'x-protective-marking' `
+            -SetHeaderValue $HeaderExample `
+            -Comments $comment
+            | Out-Null
+    } else {
+        Write-Log -Message "Creating new transport rule '$ruleName'."
+        New-TransportRule `
+            -Name $ruleName `
+            -HeaderMatchesMessageHeader 'msip_labels' `
+            -HeaderMatchesPatterns "(?im)$($deployedLabel.guid)" `
+            -SetHeaderName 'x-protective-marking' `
+            -SetHeaderValue $HeaderExample `
+            -Comments $comment `
+            -Mode 'Audit' `
+            | Out-Null
+    }
+}
+
 function Assert-DecryptionTransportRule {
     param(
-        [string]
-        $DisplayName,
-        [string[]]
-        $TrustedDomains
+        [string] $DisplayName,
+        [string[]] $TrustedDomains
     )
 
     If (Get-TransportRule -Identity $DisplayName -ErrorAction SilentlyContinue) {
@@ -412,7 +455,8 @@ function Assert-DecryptionTransportRule {
             -FromScope 'InOrganization' `
             -RecipientDomainIs $TrustedDomains `
             -RemoveOMEv2 $true `
-            -RemoveRMSAttachmentEncryption $true                
+            -RemoveRMSAttachmentEncryption $true `
+            | Out-Null           
     } else {
         Write-Log -Message "Creating new transport rule '$DisplayName'."
         New-TransportRule `
@@ -420,12 +464,27 @@ function Assert-DecryptionTransportRule {
             -FromScope 'InOrganization' `
             -RecipientDomainIs $TrustedDomains `
             -RemoveOMEv2 $true `
-            -RemoveRMSAttachmentEncryption $true    
+            -RemoveRMSAttachmentEncryption $true `
+            -Mode 'Audit' `
+            | Out-Null
     }
 }
 
-
 # Debugging.
+
+function Enable-AllLabelsAndPolicies {
+    Get-DlpCompliancePolicy | Set-DlpCompliancePolicy -Mode 'Enable'
+    Get-AutoSensitivityLabelPolicy | Set-AutoSensitivityLabelPolicy -Mode 'Enable'
+    Get-TransportRule | Set-TransportRule -Mode 'Enable'
+}
+
+function Disable-AllLabelsAndPolicies {
+    Get-DlpCompliancePolicy | Set-DlpCompliancePolicy -Mode 'TestWithoutNotifications'
+    Get-AutoSensitivityLabelPolicy | Set-AutoSensitivityLabelPolicy -Mode 'TestWithoutNotifications'
+    Get-TransportRule | Set-TransportRule -Mode 'Audit'
+}
+
+
 function Remove-AllLabelsAndPolicies {
 
     $compliancePolicies = Get-DlpCompliancePolicy | Where-Object { $_.mode -ne 'PendingDeletion' }
@@ -438,7 +497,7 @@ function Remove-AllLabelsAndPolicies {
 
     $autoLabelPolicies = Get-AutoSensitivityLabelPolicy | Where-Object { $_.mode -ne 'PendingDeletion' }
     if ($autoLabelPolicies) {
-        Write-Log -Message "`tRemoving $($autoLabelPolicies.Count) auto-labeling policies." -Level 'Warning'
+        Write-Log -Message "`tRemoving $($autoLabelPolicies.Count) auto-labelling policies." -Level 'Warning'
         $autoLabelPolicies | Remove-AutoSensitivityLabelPolicy -Confirm:$true
     } else {
         Write-Log -Message "No auto-labling policies to delete."

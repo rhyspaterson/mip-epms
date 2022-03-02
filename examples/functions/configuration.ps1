@@ -12,7 +12,7 @@ function Get-EPMSLabels {
             LabelDisplayName    = "UNOFFICIAL"
             Tooltip             = "No damage. This information does not form part of official duty."
             HeaderRegex         = "(?im)sec=unofficial\u002C"
-            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=UNOFFICIAL, ORIGIN=jane.doe@contoso.gov.au"
+            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=UNOFFICIAL, ORIGIN=transport.rule@contoso.com"
             SubjectRegex        = "(?im)sec=unofficial\u002C"
             SubjectExample      = "[SEC=UNOFFICIAL]"
             DocumentMarkingText = "UNOFFICIAL"        
@@ -31,7 +31,7 @@ function Get-EPMSLabels {
             LabelDisplayName    = "OFFICIAL"
             Tooltip             = "No or insignificant damage. This is the majority of routine information."
             HeaderRegex         = "(?im)(sec=official)(?!:sensitive)"
-            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL, ORIGIN=jane.doe@contoso.gov.au"
+            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL, ORIGIN=transport.rule@contoso.com"
             ParentLabel         = "OFFICIAL [Parent]"
             SubjectRegex        = "(?im)sec=official\u002C"
             SubjectExample      = "[SEC=OFFICIAL]"   
@@ -44,7 +44,7 @@ function Get-EPMSLabels {
             LabelDisplayName    = "OFFICIAL - Sensitive"
             Tooltip             = "Limited damage to an individual, organisation or government generally if compromised."
             HeaderRegex         = "(?im)(sec=official:sensitive)(?!\u002C\saccess)"   
-            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ORIGIN=jane.doe@contoso.gov.au"
+            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ORIGIN=transport.rule@contoso.com"
             SubjectRegex        = "(?im)(sec=official:sensitive)(?!\u002C\saccess)"
             SubjectExample      = "[SEC=OFFICIAL:Sensitive]"
             DocumentMarkingText = "OFFICIAL:Sensitive"      
@@ -57,7 +57,7 @@ function Get-EPMSLabels {
             LabelDisplayName    = "OFFICIAL - Sensitive - Legislative-Secrecy"
             Tooltip             = "TBC"
             HeaderRegex         = "(?im)(sec=official:sensitive\u002C\saccess=legislative-secrecy)"
-            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Legislative-Secrecy, ORIGIN=jane.doe@contoso.gov.au"
+            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Legislative-Secrecy, ORIGIN=transport.rule@contoso.com"
             SubjectRegex        = "(?im)(sec=official:sensitive\u002C\saccess=legislative-secrecy)"
             SubjectExample      = "[SEC=OFFICIAL:Sensitive, ACCESS=Legislative-Secrecy]"   
             DocumentMarkingText = "OFFICIAL:Sensitive//Legislative-Secrecy"         
@@ -70,7 +70,7 @@ function Get-EPMSLabels {
             LabelDisplayName    = "OFFICIAL - Sensitive - Legal Privilege"
             Tooltip             = "TBC"
             HeaderRegex         = "(?im)(sec=official:sensitive\u002C\saccess=legal-privilege)"
-            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Legal-Privilege, ORIGIN=jane.doe@contoso.gov.au"
+            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Legal-Privilege, ORIGIN=transport.rule@contoso.com"
             SubjectRegex        = "(?im)(sec=official:sensitive\u002C\saccess=legal-privilege)"
             SubjectExample      = "[SEC=OFFICIAL:Sensitive, ACCESS=Legal-Privilege]"   
             DocumentMarkingText = "OFFICIAL:Sensitive//Legal-Privilege"         
@@ -83,7 +83,7 @@ function Get-EPMSLabels {
             LabelDisplayName    = "OFFICIAL - Sensitive - Personal Privacy"
             Tooltip             = "TBC"
             HeaderRegex         = "(?im)(sec=official:sensitive\u002C\saccess=personal-privacy)"
-            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Personal-Privacy, ORIGIN=jane.doe@contoso.gov.au"
+            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Personal-Privacy, ORIGIN=transport.rule@contoso.com"
             SubjectRegex        = "(?im)(sec=official:sensitive\u002C\saccess=personal-privacy)"
             SubjectExample      = "[SEC=OFFICIAL:Sensitive, ACCESS=Personal-Privacy]"     
             DocumentMarkingText = "OFFICIAL:Sensitive//Personal-Privacy"
@@ -103,7 +103,7 @@ function Get-EPMSLabels {
             LabelDisplayName    = "PROTECTED"
             Tooltip             = "High business impact. Damage to the national interest, organisations or individuals."
             HeaderRegex         = "(?im)(sec=protected)(?!\u002C\saccess)"
-            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ORIGIN=jane.doe@contoso.gov.au"
+            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ORIGIN=transport.rule@contoso.com"
             SubjectRegex        = "(?im)(sec=protected)(?!\u002C\saccess)"
             SubjectExample      = "[SEC=PROTECTED]"    
             DocumentMarkingText = "PROTECTED"
@@ -116,7 +116,7 @@ function Get-EPMSLabels {
             LabelDisplayName    = "PROTECTED - Legal-Privilege"
             Tooltip             = "High business impact. Damage to the national interest, organisations or individuals."
             HeaderRegex         = "(?im)(sec=protected\u002C\saccess=legal-privilege)"
-            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ACCESS=Legal-Privilege, ORIGIN=jane.doe@contoso.gov.au"
+            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ACCESS=Legal-Privilege, ORIGIN=transport.rule@contoso.com"
             SubjectRegex        = "(?im)(sec=protected\u002C\saccess=legal-privilege)"
             SubjectExample      = "[SEC=PROTECTED, ACCESS=Legal-Privilege]"    
             DocumentMarkingText = "PROTECTED//Legal-Privilege"      
@@ -129,7 +129,7 @@ function Get-EPMSLabels {
             LabelDisplayName    = "PROTECTED - Legislative-Secrecy"
             Tooltip             = "High business impact. Damage to the national interest, organisations or individuals."
             HeaderRegex         = "(?im)(sec=protected\u002C\saccess=legislative-secrecy)"
-            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ACCESS=Legislative-Secrecy, ORIGIN=jane.doe@contoso.gov.au"
+            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ACCESS=Legislative-Secrecy, ORIGIN=transport.rule@contoso.com"
             SubjectRegex        = "(?im)(sec=protected\u002C\saccess=legislative-secrecy)"
             SubjectExample      = "[SEC=PROTECTED, ACCESS=Legislative-Secrecy]"    
             DocumentMarkingText = "PROTECTED//Legislative-Secrecy"      
@@ -142,7 +142,7 @@ function Get-EPMSLabels {
             LabelDisplayName    = "PROTECTED - Personal-Privacy"
             Tooltip             = "High business impact. Damage to the national interest, organisations or individuals."
             HeaderRegex         = "(?im)(sec=protected\u002C\saccess=personal-privacy)"
-            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ACCESS=Personal-Privacy, ORIGIN=jane.doe@contoso.gov.au"
+            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ACCESS=Personal-Privacy, ORIGIN=transport.rule@contoso.com"
             SubjectRegex        = "(?im)(sec=protected\u002C\saccess=personal-privacy)"
             SubjectExample      = "[SEC=PROTECTED, ACCESS=Personal-Privacy]"    
             DocumentMarkingText = "PROTECTED//Personal-Privacy"      
@@ -171,10 +171,10 @@ function Get-EPMSLabelPolicies {
 function Get-EPMSDomains {
     # Add additional domains into here as required.
     return @(
-        'contoso-1.gov.au', 
-        'contoso-2.gov.au',
-        'contoso-3.gov.au',
-        'contoso-4.gov.au',
-        'contoso-5.gov.au'
+        'contoso-1.com', 
+        'contoso-2.com',
+        'contoso-3.com',
+        'contoso-4.com',
+        'contoso-5.com'
     )
 }

@@ -88,7 +88,13 @@ foreach ($label in $labels) {
             -Identifier $label.Identifier `
             -LabelDisplayName $label.LabelDisplayName `
             -SubjectRegex $label.SubjectRegex `
-            -SubjectExample $label.SubjectExample            
+            -SubjectExample $label.SubjectExample 
+            
+        # Configure ETR to write the x-protective-marking header based on the sensitivity label.
+        Assert-HeaderTransportRule `
+            -Identifier $label.Identifier `
+            -LabelDisplayName $label.LabelDisplayName `
+            -HeaderExample $label.HeaderExample               
     }
     
     Write-Log -Message ""

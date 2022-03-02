@@ -138,10 +138,6 @@ Putting it all together gives us `(?im)sec=unofficial\u002C`, which will match t
 
 Check out the [regular expressions](https://github.com/rhyspaterson/mip-epms/#regular-expressions) section below for more details.
 
-### Configure the outbound auto-labelling policies
-
-TBC
-
 ### Configure the data loss prevention policies
 
 Although arguably an optional control and of questionable value, the appending of the protective marking to the mail subject is ubiquitous. We can achieve this by leveraging a data loss prevention rule that modifies our subject based on the attached sensitivity label. Once a label is applied within Microsoft 365, we have full confidence about the classification of the given email. In this respect, we may only choose then to modify the subject in more specific scenarios, such as for mail destined outside of the organisation. However, if we want full confidence the classification is correctly appended in any scenario, we can be more generic in our application. 
@@ -188,7 +184,7 @@ $complexModifySubjectRule = @{
 
 # Create the policy
 New-DlpComplianceRule `
-    -Name "If 'unofficial-test', append subject" `
+    -Name "If 'unofficial', append subject" `
     -Policy $($policy.name) `
     -ContentContainsSensitiveInformation $complexSensitiveInformationRule `
     -ModifySubject $complexModifySubjectRule `
@@ -196,9 +192,34 @@ New-DlpComplianceRule `
 
 This is a bit more advanced. First, we define the `PswsHashtable` for `ContentContainsSensitiveInformation`. This is a nested hashtable that defines the logic to fire any time a label with a given name is seen. We are re-using the `$label.name` attribute we generated previously. 
 
-Then, we define the `ModifySubject` rule, also a `PswsHashtable`. Here we leverage regular expressions again to find our visual marking, replace it with our desired text, and append it to the end of the of the subject. This single regex should do for any protective marking that meets the specificaiton.
+Then, we define the `ModifySubject` rule, also a `PswsHashtable`. Here we leverage regular expressions again to find our visual marking, replace it with our desired text, and append it to the end of the of the subject. This single regex should do for any protective marking that meets the specification.
 
 Finally, we create the policy with both of the hashtables.
+
+### Configure the outbound transport rules to write the x-protective-marking header
+
+When sending mail external to the organisation, our adherence to the EPMS is required to ensure the reliable transport of our mail across organisations. The receiving party is not necessarily familiar with our internal labelling configuration and it's associated metadata, and thus cannot determine the classification of the mail without leveraging the x-protective-marking header. This is one of the primary use cases of the EPMS. 
+
+Given the simplicity of the approach to tag inbound mail with a label based on the x-header as seen in the auto-labelling policy above, or the approach to rewrite the subject line, adopting a similar approach would be desirable. Unfortunately, we are currently bound by a product limitation in Microsoft 365 that prevents us from inserting an x-header that is greater than 64 characters via DLP rules. Even for our basic protective markings, this is too small, even if we do exclude the `origin=`.
+
+To solve this, we revert to good old fashioned transport rules. We can query the label applied to a given email via the x-header that is written by MIP, and write the associated x-protective-marking header as required. It's not as elegant as above, but it gets the job done.
+
+```powershell
+New-TransportRule `
+    -Name "Insert x-header for 'unofficial'" `
+    -HeaderMatchesMessageHeader 'msip_labels' `
+    -HeaderMatchesPatterns "(?im)$($label.guid)" `
+    -SetHeaderName 'x-protective-marking' `
+    -SetHeaderValue 'VER=2018.4, NS=gov.au, SEC=UNOFFICIAL, ORIGIN=transport-rule@contoso.com' `
+    -Mode 'Audit'
+```
+
+Here we define a new transport rule that queries the `msip_labels` x-header for the guid of our label. If it's there, then write the supporting `x-protective-marking` header and off we go. The `msip_labels` is an internal header written by MIP when a label is applied to mail. We leverage regular expressions to pattern match our sensitivity label guid using this header. Here we are saying:
+
+- `(?im)`: case insensitive, match across multiple lines
+- `$($label.guid)`: match the characters `guid-of-our-label` literally
+
+You could enhance this to be more specific in your mail flows, such as to only fire on mail sent outside the organisation via the `-SentToScope 'NotInOrganization'`, if you wished. Like the above approach, we've set the `mode` to `Audit`to allow us to deploy the policy but simulate the result without actually modifying the `x-protective-marking` header. Once we're happy, we can shift the `mode` to `Enforce`.
 
 ### Configure encryption on the label/s
 
@@ -228,7 +249,7 @@ Here we define a new policy that strips any encryption from mail and attachments
 
 For the bold, you can reference the [C](examples/Assert-SensitivityLabelsAndPolicies.ps1) PowerShell script that will provision a set of sensitivity labels and their supporting configuration. This for the most part assumes you are operating in a development environment, but won't modify existing sensitivity labels just in case.
 
-Simply provide it with the certificate thumbprint, app registration and tenancy name as configured via [App-only authentication in EXO V2](https://docs.microsoft.com/en-us/powershell/exchange/app-only-auth-powershell-v2?view=exchange-ps), and off you go. Note that in its current form, the script will deploy labels to all users in the tenant, and set the dlp and auto-labelling policies tp `enable` mode.
+Simply provide it with the certificate thumbprint, app registration and tenancy name as configured via [App-only authentication in EXO V2](https://docs.microsoft.com/en-us/powershell/exchange/app-only-auth-powershell-v2?view=exchange-ps), and off you go. Note that in its current form, the script will deploy labels to all users in the tenant, and set the dlp, auto-labelling and transport rules to test/audit mode. 
 
 ```PowerShell
 .\Assert-SensitivityLabelsAndPolicies.ps1 `

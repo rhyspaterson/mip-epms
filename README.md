@@ -1,6 +1,6 @@
 # Email Protective Marking Standard and Microsoft 365
 
-This repository provides information and configuration as code to support for the Australian Government's Email Protective Marking Standard (EPMS) within Microsoft 365. It is expected this approach can be adopted by other governments and organisations that leverage similar protective marking approaches for the classification of mail.
+This repository provides information and configuration as code to support for the Australian Government's [Email Protective Marking Standard](https://www.protectivesecurity.gov.au/publications-library/policy-8-sensitive-and-classified-information) (EPMS) within Microsoft 365. It is expected this approach can be adopted by other governments and organisations that leverage similar protective marking approaches for the classification of mail.
 
 The focus is primarily to support Outlook using the native (non-AIP UL) client that is built into the Microsoft productivity suite. This approach is cross-platform, supporting Windows, Mac, iOS, Android and web.
 

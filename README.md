@@ -228,7 +228,7 @@ Here we define a new policy that strips any encryption from mail and attachments
 
 For the bold, you can reference the [C](examples/Assert-SensitivityLabelsAndPolicies.ps1) PowerShell script that will provision a set of sensitivity labels and their supporting configuration. This for the most part assumes you are operating in a development environment, but won't modify existing sensitivity labels just in case.
 
-Simply provide it with the certificate thumbprint, app registration and tenancy name as configured via [App-only authentication in EXO V2](https://docs.microsoft.com/en-us/powershell/exchange/app-only-auth-powershell-v2?view=exchange-ps), and off you go. Note that in it's current form, the script will deploy labels to all users in the tenant, and set the dlp and auto-labelling policies tp `enable` mode.
+Simply provide it with the certificate thumbprint, app registration and tenancy name as configured via [App-only authentication in EXO V2](https://docs.microsoft.com/en-us/powershell/exchange/app-only-auth-powershell-v2?view=exchange-ps), and off you go. Note that in its current form, the script will deploy labels to all users in the tenant, and set the dlp and auto-labelling policies tp `enable` mode.
 
 ```PowerShell
 .\Assert-SensitivityLabelsAndPolicies.ps1 `
@@ -322,7 +322,7 @@ Will wait for any pending deletions of the above to complete before proceeding. 
 
 ### Regular expressions
 
-The regular expressions are validated against their example via the [configuration.Tests.ps1](examples/tests/configuration.Tests.ps1) Pester tests. This will pull the regular expressions as defined in the label structure above, and validate them against their examples. It also validates a negative match against the other labels. This provides a quick assurance that the regex is both valid and functional.
+The regular expressions in use are all defined in the [configuration.ps1](examples/functions/configuration.ps1) file for the given label. They are validated against their example via the [configuration.Tests.ps1](examples/tests/configuration.Tests.ps1) Pester tests. This will pull the regular expressions as defined in the label structure above and validate them against their examples. It also validates a negative match against the other labels. This provides a quick assurance that the regex as defined in the configuration is both valid and functional.
 
 ```powershell
 Invoke-Pester -Output Detailed .\examples\tests\configuration.Tests.ps1

@@ -148,11 +148,6 @@ function Assert-EPMSLabel {
     }
 }
 
-<#
-Workload                     : Exchange, SharePoint, OneDriveForBusiness, Skype, ModernGroup
-#>
-
-
 function Assert-EPMSLabelPolicy {
     param(
         [string] $DisplayName,
@@ -453,7 +448,7 @@ function Remove-AllLabelsAndPolicies {
         $labelPolicies | Remove-LabelPolicy -Confirm:$true
     } else {
         Write-Log -Message "No manual label policies to delete."
-    }    
+    }
 
     # TO DO, (Get-Label).ParentId.Guid
     [array] $skippedLabels = $null
@@ -477,7 +472,7 @@ function Remove-AllLabelsAndPolicies {
 
     } else {
         Write-Log -Message "No sensitivity labels to delete."
-    }  
+    }    
 }
 
 function Get-PendingLabelAndPolicyDeletionStatus {

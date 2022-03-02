@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
-      - name: Perform a Pester for the label configuration
+      - name: Perform Pester tests against the label configuration
         shell: pwsh
         run: |
           Invoke-Pester -Output Detailed .\examples\tests\configuration.Tests.ps1 -Passthru

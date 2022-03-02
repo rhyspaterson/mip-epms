@@ -3,10 +3,11 @@
 Provisions sensitivity labels and the supporting DLP and ETR policies to provide EPMS support under the PSPF.
 
 .NOTES
-Assumes the Global Administrator role or appropraite privilege is allocated to the app registration.
+Assumes the Exchange.ManageAsApp privilege is consented to the app registration, and the Global Administrator role or appropriate privilege
+ is also allocated to the app registration.
 
 .EXAMPLE
-.\Create-SensitivityLabelsAndPolicies.ps1 `
+.\Assert-SensitivityLabelsAndPolicies `
     -certificateThumbprint 'CFE601DF99EC017EAA19D8853004873B5B46DBBA' `
     -appId "07f8ec11-b3e4-4484-8af4-1b02c42f7d4a" `
     -tenant "contoso.onmicrosoft.com"
@@ -32,9 +33,8 @@ param (
 
 # Import our common functions.
 Try {
-    . .\_functions.ps1
-    . .\_labels.ps1
-    . .\_domains.ps1    
+    . .\functions\functions.ps1
+    . .\functions\configuration.ps1
 } Catch {
     Throw 'Could not import pre-requisites ($_.Exception).'
 }
@@ -93,7 +93,7 @@ foreach ($label in $labels) {
     Write-Log -Message ""
 }
 
-# Enumerate the configuration and provision our client side/manual labeling policies.
+# Enumerate the configuration and provision our client side/manual labelling policies.
 foreach ($policy in $labelPolicies) {
 
     Write-Log -Message "Enumerating: $($policy.Identifier)" -Level 'Success'
@@ -109,6 +109,7 @@ foreach ($policy in $labelPolicies) {
 }
 
 # Create the ETR to strip encryption for mail send to trusted domains.
+$authorisedDomains = Get-EPMSDomains
 Assert-DecryptionTransportRule -DisplayName 'EPMS - Strip encryption for outgoing emails and attachments' -TrustedDomains $authorisedDomains
 
 # Disconnect!

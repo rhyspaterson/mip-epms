@@ -1,8 +1,9 @@
-
-# The regular expression engine afforded to us within Microsoft 365 oeprates with some limitations.
-# The most important being that variable length lookaheads are not supported (e.g: .*, or .+)
-# Therefore we must assume the whitespaces are commas as defined in the specificaiton are adhered to (e.g., no variable whitespace).
-# Currently escpaing commas as unicode as the engine did not like that, either.
+<#
+The regular expression engine afforded to us within Microsoft 365 oeprates with some limitations.
+The most important being that variable length lookaheads are not supported (e.g: .*, or .+)
+Therefore we must assume the whitespaces are commas as defined in the specificaiton are adhered to (e.g., no variable whitespace).
+Currently escpaing commas as unicode as the engine did not like that, either.
+#>
 
 function Get-EPMSLabels {
     return [PSCustomObject]@(
@@ -165,4 +166,15 @@ function Get-EPMSLabelPolicies {
             DeployTo            = 'protected-labels-mail-enabled-security-group'
         }
     )    
+}
+
+function Get-EPMSDomains {
+    # Add additional domains into here as required.
+    return = @(
+        'contoso-1.gov.au', 
+        'contoso-2.gov.au',
+        'contoso-3.gov.au',
+        'contoso-4.gov.au',
+        'contoso-5.gov.au'
+    )
 }

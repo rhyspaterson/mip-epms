@@ -42,6 +42,8 @@ Not all functionality that might be expected to be provided through third-party 
 
 If you'd like to skip to already-coded-part, check out the [complete provisioning example](https://github.com/rhyspaterson/mip-epms/#complete-provisioning-example). Otherwise, this will step through the approach in provisioning a label and the supporting configuration from scratch.
 
+Particularly if you are in an old or temporary tenant, ensure you have run `Execute-AzureAdLabelSync` and [enabled consent for Azure Purview](https://docs.microsoft.com/en-us/azure/purview/how-to-automatically-label-your-content#step-2-consent-to-use-sensitivity-labels-in-azure-purview) first.
+
 ### Create our label
 
 Sensitivity labels are the data classification capability within Microsoft Information Protection. and can be most easily compared to the use of protective markings within the Protective Security Policy Framework (PSPF). Sensitivity labels allow for the manual and automatic classification  of data, which enables the organisation to analyse and protect the associated information. By labelling - or classifying - the data, the supporting business rules can be enforced, including encryption. 
@@ -207,22 +209,22 @@ We achieve this by [defining a new transport rule policy](https://docs.microsoft
 
 Here we define a new policy that strips any encryption from mail and attachments, when sent from inside the Exchange organisation to a set of trusted domains.
 
-## Complete Provisioning Example
+## Complete provisioning example
 
-For the bold, you can reference the [Create-SensitivityLabelsAndPolicies.ps1](examples/Create-SensitivityLabelsAndPolicies.ps1) PowerShell script that will provision a set of sensitivity labels and their supporting configuration. This for the most part assumes you are operating in a development environment, but won't modify existing sensitivity labels just in case.
+For the bold, you can reference the [C](examples/Assert-SensitivityLabelsAndPolicies.ps1) PowerShell script that will provision a set of sensitivity labels and their supporting configuration. This for the most part assumes you are operating in a development environment, but won't modify existing sensitivity labels just in case.
 
 Simply provide it with the certificate thumbprint, app registration and tenancy name as configured via [App-only authentication in EXO V2](https://docs.microsoft.com/en-us/powershell/exchange/app-only-auth-powershell-v2?view=exchange-ps), and off you go.
 
 ```PowerShell
-.\Create-SensitivityLabelsAndPolicies.ps1 `
+.\Assert-SensitivityLabelsAndPolicies.ps1 `
     -certificateThumbprint 'CFE601DF99EC017EAA19D8853004873B5B46DBBA' `
     -appId "07f8ec11-b3e4-4484-8af4-1b02c42f7d4a" `
     -tenant "contoso.onmicrosoft.com"
 ```
 
-### Label Attributes
+### Label attributes
 
-The labels are defined in the [_labels.ps1](examples/_labels.ps1) file and use the following defined structure.
+The labels are defined in the [configuration.ps1](examples/functions/configuration.ps1) file and use the following defined structure.
 
 ```Identifier```
 
@@ -272,9 +274,9 @@ Optional. If the label is a child label as defined above through `HasParent`, th
 
 Optional. The assocaited labelling policy the label is assigned to. This is required to deploy the label to end users.
 
-### Policy Attributes
+### Policy attributes
 
-The policies are also defined in the [_labels.ps1](examples/_labels.ps1) file and use the following defined structure.
+The policies are also defined in the [configuration.ps1](examples/functions/configuration.ps1) file and use the following defined structure.
 
 ```Identifier```
 
@@ -291,10 +293,22 @@ To whom the policy is deployed to. Can be one of:
 - `All`: the label is deployed to everyone.
 - `<group-name>`: the the name of the mail enabled security group to filter the policy to.
 
-### Regular Expressions
+### Deleting existing labels and policies
 
-The regular expressions are validated against their example via the [_labels.ps1](examples/_labels.Tests.ps1) Pester tests. This will pull the regular expressions as defined in the label structure above, and validate them against their examples. It also validates a negative match against the other labels. This provides a quick assurance that the regex is both valid and functional.
+If you like, you can request the deletion of all existing labels and policies. This is helpful for development or demo tenants where you are evaluating the code and solution. To do this, leverage the following flags:
+
+```-RemoveExistingLabelsAndPolicies```
+
+Will remove all existing manual labelling policies, auto-labelling policies, DLP rules and the labels themselves.
+
+```-WaitForPendingDeletions```
+
+Will wait for any pending deletions of the above to complete before proceeding. This can take a very long time.
+
+### Regular expressions
+
+The regular expressions are validated against their example via the [configuration.Tests.ps1](examples/tests/configuration.Tests.ps1) Pester tests. This will pull the regular expressions as defined in the label structure above, and validate them against their examples. It also validates a negative match against the other labels. This provides a quick assurance that the regex is both valid and functional.
 
 ```powershell
-Invoke-Pester -Output Diagnostic examples/_labels.Tests.ps1
+Invoke-Pester -Output Detailed .\examples\tests\configuration.Tests.ps1
 ```

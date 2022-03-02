@@ -447,8 +447,15 @@ function Remove-AllLabelsAndPolicies {
         Write-Log -Message "No auto-labling policies to delete."
     }
 
-    # TO DO, check if there are children, and remove them first.
-    # (Get-Label).ParentId.Guid
+    $labelPolicies = Get-LabelPolicy | Where-Object { $_.mode -ne 'PendingDeletion' }
+    if ($labelPolicies) {
+        Write-Log -Message "`tRemoving $($labelPolicies.Count) manual labeling policies." -Level 'Warning'
+        $labelPolicies | Remove-LabelPolicy -Confirm:$true
+    } else {
+        Write-Log -Message "No manual label policies to delete."
+    }    
+
+    # TO DO, (Get-Label).ParentId.Guid
     [array] $skippedLabels = $null
     $labels = Get-Label | Where-Object { $_.mode -ne 'PendingDeletion' }
     if ($labels) {
@@ -477,11 +484,12 @@ function Get-PendingLabelAndPolicyDeletionStatus {
 
     $compliancePolicies = Get-DlpCompliancePolicy | Where-Object { $_.mode -eq 'PendingDeletion' }
     $autoLabelPolicies = Get-AutoSensitivityLabelPolicy | Where-Object { $_.mode -eq 'PendingDeletion' }
+    $labelPolicies = Get-LabelPolicy | Where-Object { $_.mode -eq 'PendingDeletion' }
     $labels = Get-Label | Where-Object { $_.mode -eq 'PendingDeletion' }
 
     Write-Log -Message "Pending deletion: $($compliancePolicies.count) compliance policies, $($autoLabelPolicies.count) auto-label policies, $($labels.count) labels."
 
-    if (($compliancePolicies.count -ne 0) -or ($autoLabelPolicies.count -ne 0) -or ($labels.count -ne 0)) {
+    if (($compliancePolicies.count -ne 0) -or ($autoLabelPolicies.count -ne 0) -or ($labelPolicies.count -ne 0) -or ($labels.count -ne 0)) {
         return 'pending'
     } else {
         return 'completed'

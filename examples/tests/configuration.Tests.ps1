@@ -6,7 +6,7 @@ BeforeAll {
 
     # Import our functions to test.
     Try {
-        . $PSCommandPath.Replace('.Tests.ps1','.ps1')
+        . $PSScriptRoot\..\functions\configuration.ps1
     } Catch {
         Throw 'Could not import pre-requisites ($_.Exception).'
     }

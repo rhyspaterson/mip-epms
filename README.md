@@ -43,6 +43,8 @@ Not all functionality that might be expected to be provided through third-party 
 - [ ] To do: clarify inheritance `[readme-update]`.
 - [ ] To do: fix parent label display names `[readme-update, code-update]`.
 - [ ] To do: add additional protective markings (e.g., cabinet) `[code-update]`.
+- [ ] To do: add encryption steps `[readme-update, code-update]`.
+- [ ] To do: add outbound x-header steps `[readme-update, code-update]`.
 
 ## Getting started
 

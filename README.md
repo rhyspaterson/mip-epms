@@ -200,7 +200,7 @@ Finally, we create the policy with both of the hashtables.
 
 When sending mail external to the organisation, our adherence to the EPMS is required to ensure the reliable transport of our mail across organisations. The receiving party is not necessarily familiar with our internal labelling configuration and it's associated metadata, and thus cannot determine the classification of the mail without leveraging the x-protective-marking header. This is one of the primary use cases of the EPMS. 
 
-Given the simplicity of the approach to tag inbound mail with a label based on the x-header as seen in the auto-labelling policy above, or the approach to rewrite the subject line, adopting a similar approach would be desirable. Unfortunately, we are currently bound by a product limitation in Microsoft 365 that prevents us from inserting an x-header that is greater than 64 characters via DLP rules. Even for our basic protective markings, this is too small, even if we do exclude the `origin=`.
+Given the simplicity of the approach to tag inbound mail with a label based on the x-header as seen in the auto-labelling policy above, or the approach to rewrite the subject line via dlp, adopting a similar approach would be desirable. Unfortunately, we are currently bound by a product limitation in Microsoft 365 that prevents us from inserting an x-header that is greater than 64 characters via dlp rules. Even for our basic protective markings, this is too small, even if we do exclude the `origin=` attribute that we can't current write dynamically.
 
 To solve this, we revert to good old fashioned transport rules. We can query the label applied to a given email via the x-header that is written by MIP, and write the associated x-protective-marking header as required. It's not as elegant as above, but it gets the job done.
 
@@ -247,7 +247,7 @@ Here we define a new policy that strips any encryption from mail and attachments
 
 ## Complete provisioning example
 
-For the bold, you can reference the [C](examples/Assert-SensitivityLabelsAndPolicies.ps1) PowerShell script that will provision a set of sensitivity labels and their supporting configuration. This for the most part assumes you are operating in a development environment, but won't modify existing sensitivity labels just in case.
+For the bold, you can reference the [Assert-SensitivityLabelsAndPolicies.ps1](examples/Assert-SensitivityLabelsAndPolicies.ps1) PowerShell script that will provision a set of sensitivity labels and their supporting configuration. This for the most part assumes you are operating in a development environment, but won't modify existing sensitivity labels just in case.
 
 Simply provide it with the certificate thumbprint, app registration and tenancy name as configured via [App-only authentication in EXO V2](https://docs.microsoft.com/en-us/powershell/exchange/app-only-auth-powershell-v2?view=exchange-ps), and off you go. Note that in its current form, the script will deploy labels to all users in the tenant, and set the dlp, auto-labelling and transport rules to test/audit mode. 
 
@@ -257,6 +257,18 @@ Simply provide it with the certificate thumbprint, app registration and tenancy 
     -appId "07f8ec11-b3e4-4484-8af4-1b02c42f7d4a" `
     -tenant "contoso.onmicrosoft.com"
 ```
+
+### Deleting existing labels and policies
+
+If you like, you can request the deletion of all existing labels and policies. This is helpful for development or demo tenants where you are evaluating the code and solution. To do this, leverage the following flags:
+
+```-RemoveExistingLabelsAndPolicies```
+
+Will remove all existing manual labelling policies, auto-labelling policies, DLP rules and the labels themselves.
+
+```-WaitForPendingDeletions```
+
+Will wait for any pending deletions of the above to complete before proceeding. This can take a very long time - many, many hours.
 
 ### Label attributes
 
@@ -328,18 +340,6 @@ To whom the policy is deployed to. Can be one of:
 
 - `All`: the label is deployed to everyone.
 - `<group-name>`: the the name of the mail enabled security group to filter the policy to.
-
-### Deleting existing labels and policies
-
-If you like, you can request the deletion of all existing labels and policies. This is helpful for development or demo tenants where you are evaluating the code and solution. To do this, leverage the following flags:
-
-```-RemoveExistingLabelsAndPolicies```
-
-Will remove all existing manual labelling policies, auto-labelling policies, DLP rules and the labels themselves.
-
-```-WaitForPendingDeletions```
-
-Will wait for any pending deletions of the above to complete before proceeding. This can take a very long time.
 
 ### Regular expressions
 

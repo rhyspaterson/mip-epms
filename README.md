@@ -35,7 +35,6 @@ Not all functionality that might be expected to be provided through third-party 
 #### Not implemented
 - [ ] When downgrading a sensitivity label, the downgrade can not be prevented, only require justification.
 - [ ] When manipulating the `x-protective-marking` header, variables cannot be inserted, such as a user principal name.
-- [ ] When manipulating the `x-protective-marking` header, advanced characters such as commas `,` or colons `:` cannot be inserted.
 - [ ] When manipulating the `x-protective-marking` header, the new header value cannot exceed 64 characters.
 - [ ] Allow the application of sensitivity labels to calendar objects.
 - [ ] To do: clarify inheritance.

@@ -78,6 +78,10 @@ function Assert-GraphConnection {
         [string] $AppId,
         [string] $Tenant
     ) 
+
+    Write-Log "Removing any existing Graph connections."
+
+    Disconnect-MgGraph 
     
     try {
 
@@ -91,7 +95,9 @@ function Assert-GraphConnection {
         Connect-MgGraph `
             -ClientID $AppId `
             -TenantId $Tenant `
-            -CertificateThumbprint $CertificateThumbprint 
+            -CertificateThumbprint $CertificateThumbprint `
+
+        Write-Log -Message "Scopes: $((Get-MgContext).scopes)"
         
         Select-MgProfile -Name "beta"   
 

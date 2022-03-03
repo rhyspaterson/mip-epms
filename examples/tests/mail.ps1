@@ -1,3 +1,5 @@
+# Not a Pester tests, but useful for generating sample mail from one tenant to another.
+
 #Requires -Modules @{ ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "1.9.2" }
 
 param (
@@ -7,6 +9,8 @@ param (
     [string] $certificateThumbprint,
     [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
     [string] $tenant,
+    [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+    [string] $mailSender,   
     [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
     [string] $mailRecipient
 )
@@ -23,14 +27,14 @@ Assert-GraphConnection -CertificateThumbprint $certificateThumbprint -AppId $app
 $labels = Get-EPMSLabels | Where-Object { $_.Hierarchy -ne 'IsParent'}
 
 ForEach ($label in $labels) {
-    Write-Host "Sending email for $($label.SubjectExample)"
+    Write-Log -Message "Sending mail for $($label.SubjectExample)"
 
     $body = [PSCustomObject]@{
         message = [PSCustomObject]@{
-            subject = "Test from Graph"
+            subject = "EPMS - Protective markings test email"
             body = [PSCustomObject]@{
                 contentType = "text"
-                content = "Testing protective markings."
+                content = "Hello! This is a test. Header as originally sent: '$($label.HeaderExample)'. Subject suffix as originally sent: '$($label.SubjectExample)'."
             }
             toRecipients = [PSCustomObject]@([PSCustomObject]@{
                 emailAddress = [PSCustomObject]@{
@@ -45,7 +49,7 @@ ForEach ($label in $labels) {
     } | ConvertTo-Json -Depth 99
 
     Invoke-MgGraphRequest `
-        -Uri "https://graph.microsoft.com/beta//users/admin@M365x60780846.onmicrosoft.com/sendMail" `
+        -Uri "https://graph.microsoft.com/beta/users/$mailSender/sendMail" `
         -Method POST `
         -Body $body 
     

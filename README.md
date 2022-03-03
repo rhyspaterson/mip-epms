@@ -43,11 +43,15 @@ Note that unlike purely client-side solutions, controls are implemented either c
 - [ ] Allow the application of sensitivity labels to calendar objects `[m365-limitation]`.
 - [ ] When appling a sensitivity label with content markings from mail that already has content markings, the markings are duplicated `[m365-limitation]`.
 
-#### Other
+#### Other :pray:
 - [ ] To do: clarify inheritance `[readme-update]`.
 - [ ] To do: fix parent label display names `[readme-update, code-update]`.
 - [ ] To do: add additional protective markings (e.g., cabinet) `[code-update]`.
 - [ ] To do: add encryption steps `[readme-update, code-update]`.
+- [ ] To do: support modifying enabled policies `[code-update]`.
+- [ ] To do: document the email tests `[readme-update]`.
+- [ ] To do: standardise rule names to prefix with 'EPMS -' and allow a smarter delete `[code-update]`.
+- [ ] To do: standardise the use of the label names/guids/display names in the rules `[code-update]`.
 
 ## Getting started
 

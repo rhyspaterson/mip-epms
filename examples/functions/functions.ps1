@@ -364,7 +364,7 @@ function Assert-DlpCompliancePolicyAndRule {
 
         Set-DlpCompliancePolicy `
             -Identity $policyName `
-            -Mode 'TestWithoutNotifications' | Out-Null        
+            | Out-Null        
 
     } else {
 

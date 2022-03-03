@@ -239,12 +239,12 @@ From this perspective, we may require the flexibility to decrypt our content for
 We achieve this by [defining a new transport rule policy](https://docs.microsoft.com/en-us/powershell/module/exchange/new-transportrule).
 
 ```powershell
-    New-TransportRule `
-        -Name 'Strip encryption for outgoing emails and attachments to trusted domains'`
-        -FromScope 'InOrganization' `
-        -RecipientDomainIs @('contoso-1.com', 'contoso-2.com') `
-        -RemoveOMEv2 $true `
-        -RemoveRMSAttachmentEncryption $true    
+New-TransportRule `
+    -Name 'Strip encryption for outgoing emails and attachments to trusted domains'`
+    -FromScope 'InOrganization' `
+    -RecipientDomainIs @('contoso-1.com', 'contoso-2.com') `
+    -RemoveOMEv2 $true `
+    -RemoveRMSAttachmentEncryption $true    
 }
 ```
 

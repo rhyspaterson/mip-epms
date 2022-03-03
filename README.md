@@ -4,7 +4,7 @@ This repository provides information and configuration as code to support for th
 
 The focus is primarily to support Outlook using the native (non-AIP UL) client that is built into the Microsoft productivity suite. This approach is cross-platform, supporting Windows, Mac, iOS, Android and web.
 
-Not all functionality that might be expected to be provided through third-party tools are currently supported. Note that unlike purely client-side solutions, controls are implemented either client or server-side, depending on the scenario. The intent is to leverage the information protection services available within Microsoft 365 to provide a functional and practical data protection capability that supports zero trust, and negates the requirement for traditional client-side or perimeter controls to protect information.
+Please note this is not currently fully compliant with the EPMS specification, nor does it include all functionality that might be expected to be provided through other third-party tools. Note that unlike purely client-side solutions, controls are implemented either client or server-side, depending on the scenario. The intent is to leverage the information protection services available within Microsoft 365 to provide a functional and practical data protection capability that supports zero trust, and negates the requirement for traditional client-side or perimeter controls to protect information.
 
 **Note:** This is an unofficial, personal project developed for research purposes.
 
@@ -40,6 +40,7 @@ Not all functionality that might be expected to be provided through third-party 
 - [ ] When manipulating the `x-protective-marking` header, variables cannot be inserted, such as a user principal name `[m365-limitation]`.
 - [ ] When manipulating the `x-protective-marking` header, the new header value cannot exceed 64 characters `[m365-limitation]`.
 - [ ] Allow the application of sensitivity labels to calendar objects `[m365-limitation]`.
+- [ ] When appling a sensitivity label with content markings from mail that already has content markings, the markings are duplicated `[m365-limitation]`.
 
 #### Other
 - [ ] To do: clarify inheritance `[readme-update]`.

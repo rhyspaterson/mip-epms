@@ -72,6 +72,36 @@ function Assert-ServiceConnection {
 
 }
 
+function Assert-GraphConnection {
+    param(
+        [string] $CertificateThumbprint,
+        [string] $AppId,
+        [string] $Tenant
+    ) 
+    
+    try {
+
+        Import-Module Microsoft.Graph.Authentication -ErrorAction Stop
+
+        Write-Log -Message "Establishing connection to '$Tenant'."
+        Write-Log -Message "`tCertificate: '$CertificateThumbprint'"
+        Write-Log -Message "`tApplication registration: '$AppId'."
+
+        # Connect Graph
+        Connect-MgGraph `
+            -ClientID $AppId `
+            -TenantId $Tenant `
+            -CertificateThumbprint $CertificateThumbprint 
+        
+        Select-MgProfile -Name "beta"   
+
+    } catch {
+        Write-Log -Message "Failed to connect to Graph ($_.Exception)" -Level 'Error'
+        throw      
+    }  
+        
+}
+
 function Get-SensitivityLabelByDisplayName {
     Param(
         [string] $DisplayName,
@@ -100,7 +130,7 @@ function Assert-EPMSLabel {
       )
     # Check for existance.
     if ($label = Get-Label | Where-Object { ($_.DisplayName -eq $DisplayName) -and ($_.Mode -ne 'PendingDeletion') }) {
-        Write-Log -Message "Existing label '$DisplayName' detected, skipping modifications." -Level 'Warning'
+        Write-Log -Message "Existing label with name '$DisplayName' detected. Skipping." -Level 'Warning'
         return
     }
 
@@ -363,7 +393,7 @@ function Assert-DlpCompliancePolicyAndRule {
     $complexModifySubjectRule = @{
         patterns = "{\[SEC=.*?\]}"
         ReplaceStrategy = 'Append' # Remove matches and append replacement text to subject
-        SubjectText = $SubjectExample
+        SubjectText = " $SubjectExample" # Note the additional whitepsace at the prefix of the protective marking
     }
 
     # Check if the compliance rule already exists, updating if it so.    

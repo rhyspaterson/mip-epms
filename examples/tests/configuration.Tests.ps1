@@ -25,7 +25,7 @@ BeforeAll {
     $protected = $labels | Where-Object { $_.Identifier -eq 'protected'}
     $protectedLegalPrivilege = $labels | Where-Object { $_.Identifier -eq 'protected-legal-privilege'}
     $protectedLegislativeSecrecy = $labels | Where-Object { $_.Identifier -eq 'protected-legislative-secrecy'}
-    $protectedPersonalPrivacy = $labels | Where-Object { $_.Identifier -eq 'protected-personal-privacy'}
+    $protectedPersonalPrivacy = $labels | Where-Object { $_.Identifier -eq 'protected-personal-privacy'}  
 }
 
 Describe "Get-Labels" {

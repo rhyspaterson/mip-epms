@@ -149,7 +149,7 @@ function Get-EPMSLabels {
             Hierarchy           = "HasParent"
             ParentLabel         = "PROTECTED [Parent]"
             LabelPolicy         = 'protected-labels'
-        }           
+        }
     )
 }
 

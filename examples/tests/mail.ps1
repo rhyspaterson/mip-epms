@@ -1,4 +1,4 @@
-# Not a Pester tests, but useful for generating sample mail from one tenant to another.
+# Not Pester tests, but useful for generating sample mail from one tenant to another.
 
 #Requires -Modules @{ ModuleName = "Microsoft.Graph.Authentication"; ModuleVersion = "1.9.2" }
 
@@ -22,10 +22,13 @@ Try {
     Throw 'Could not import pre-requisites ($_.Exception).'
 }
 
+# We use the PowerShell graph module to simplify authentication.
 Assert-GraphConnection -CertificateThumbprint $certificateThumbprint -AppId $appId -Tenant $tenant
 
+# Get all our functional labels.
 $labels = Get-EPMSLabels | Where-Object { $_.Hierarchy -ne 'IsParent'}
 
+# For each label, send an email with the relevant subject suffix and x-header, from a given person, to a given person.
 ForEach ($label in $labels) {
     Write-Log -Message "Sending mail for $($label.SubjectExample)"
 
@@ -48,10 +51,12 @@ ForEach ($label in $labels) {
         }
     } | ConvertTo-Json -Depth 99
 
+    # Requires the Mail.Send privilege on the app registration.
     Invoke-MgGraphRequest `
         -Uri "https://graph.microsoft.com/beta/users/$mailSender/sendMail" `
         -Method POST `
         -Body $body 
     
+    # Just in case.
     Start-Sleep 1
 }

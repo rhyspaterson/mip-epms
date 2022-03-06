@@ -18,14 +18,14 @@ BeforeAll {
 
     $official = $labels | Where-Object { $_.Identifier -eq 'official'}
     $officialSensitive = $labels | Where-Object { $_.Identifier -eq 'official-sensitive'}
-    $officialSensitiveLegalPrivilege = $labels | Where-Object { $_.Identifier -eq 'official-sensitive-legal-privilege'}
-    $officialSensitiveLegislativeSecrecy = $labels | Where-Object { $_.Identifier -eq 'official-sensitive-legislative-secrecy'}
-    $officialSensitivePersonalPrivacy = $labels | Where-Object { $_.Identifier -eq 'official-sensitive-personal-privacy'}
+    $officialSensitiveLegalPrivilege = $labels | Where-Object { $_.Identifier -eq 'official-sensitive-lp'}
+    $officialSensitiveLegislativeSecrecy = $labels | Where-Object { $_.Identifier -eq 'official-sensitive-ls'}
+    $officialSensitivePersonalPrivacy = $labels | Where-Object { $_.Identifier -eq 'official-sensitive-pp'}
     
     $protected = $labels | Where-Object { $_.Identifier -eq 'protected'}
-    $protectedLegalPrivilege = $labels | Where-Object { $_.Identifier -eq 'protected-legal-privilege'}
-    $protectedLegislativeSecrecy = $labels | Where-Object { $_.Identifier -eq 'protected-legislative-secrecy'}
-    $protectedPersonalPrivacy = $labels | Where-Object { $_.Identifier -eq 'protected-personal-privacy'}  
+    $protectedLegalPrivilege = $labels | Where-Object { $_.Identifier -eq 'protected-lp'}
+    $protectedLegislativeSecrecy = $labels | Where-Object { $_.Identifier -eq 'protected-ls'}
+    $protectedPersonalPrivacy = $labels | Where-Object { $_.Identifier -eq 'protected-pp'}  
 }
 
 Describe "Get-Labels" {

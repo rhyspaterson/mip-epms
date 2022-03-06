@@ -105,10 +105,10 @@ foreach ($policy in $labelPolicies) {
 
     Write-Log -Message "Enumerating policy: $($policy.Identifier)" -Level 'Success'
 
-    # Configure the sensitivity label policy. We don't include parent labels.
+    # Configure the sensitivity label policy.
     Assert-EPMSLabelPolicy `
         -DisplayName $policy.DisplayName `
-        -Labels (($labels | Where-Object { ($_.LabelPolicy -eq $policy.Identifier) -and ($_.Hierarchy -ne 'IsParent')}).LabelDisplayName) `
+        -Labels (($labels | Where-Object { $_.LabelPolicy -eq $policy.Identifier}).LabelDisplayName) `
         -DeployTo $policy.DeployTo
 
     Write-Log -Message ""

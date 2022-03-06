@@ -199,7 +199,7 @@ New-DlpComplianceRule `
 
 This is a bit more advanced. First, we define the `PswsHashtable` for `ContentContainsSensitiveInformation`. This is a nested hashtable that defines the logic to fire any time a label with a given name is seen. We are re-using the `$label.name` attribute we generated previously. 
 
-Then, we define the `ModifySubject` rule, also a `PswsHashtable`. Here we leverage regular expressions again to find our visual marking (any [SEC=*] value we find), replace it with our desired text, and append that desired text to the end of the of the subject. This single regex should do for any protective marking that meets the specification. We even plonk a space at the front of the additive subject text to pretty up things.
+Then, we define the `ModifySubject` rule, also a `PswsHashtable`. Here we leverage regular expressions again to find our visual marking (any `[SEC=*]` value we find), replace it with our desired text, and append that desired text to the end of the of the subject. This single regex should do for any protective marking that meets the specification. We even plonk a space at the front of the additive subject text to pretty up things.
 
 Finally, we create the policy with both of the hashtables.
 
@@ -329,7 +329,7 @@ Optional. If the label is a child label as defined above through `HasParent`, th
 
 ```LabelPolicy```
 
-Optional. The assocaited labelling policy the label is assigned to. This is required to deploy the label to end users.
+Optional. The assocaited labelling policy the label is assigned to. This is required to deploy the label to end users. Only applicable on child labels, any associated parent labels will be automatically included in the policy.
 
 ### Policy attributes
 

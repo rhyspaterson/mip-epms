@@ -24,7 +24,6 @@ function Get-EPMSLabels {
             LabelDisplayName    = "OFFICIAL [Parent]" # keep the [parent] value to avoid issues with duplicate names
             Tooltip             = "Parent label for visual purposes."
             Hierarchy           = "IsParent"
-            LabelPolicy         = 'standard-labels'
         }     
         [PSCustomObject]@{
             Identifier          = "official"
@@ -96,7 +95,6 @@ function Get-EPMSLabels {
             LabelDisplayName    = "PROTECTED [Parent]" # keep the [parent] value to avoid issues with duplicate names
             Tooltip             = "Parent label for visual purposes."
             Hierarchy           = "IsParent"
-            LabelPolicy         = 'protected-labels'
         }     
         [PSCustomObject]@{
             Identifier          = 'protected'

@@ -234,13 +234,23 @@ function Assert-EPMSLabelPolicy {
 
      # Check each of the labels we need to add to the policies exist
     ForEach ($label in $Labels) {
-        if (-not($label = Get-Label | Where-Object { ($_.DisplayName -eq $label) -and ($_.Mode -ne 'PendingDeletion') })) {
+        if (-not($label = Get-SensitivityLabelByDisplayName -DisplayName $label)) {
             Write-Log -Message "Could not find label '$label'." -Level 'Warning'
-            throw
         } else {
-            $labelGuids += $label.Name
+
+            # If it does, add the guid.
+            $labelGuids += $label.Guid
+            
+            # Add any parent labels, just in case.
+            if ($null -ne $label.ParentId) {
+                $labelGuids += $label.ParentId
+            }
+            
         }
     }
+
+    # Clean up any duplicates.
+    $labelGuids = $labelGuids | Select-Object -Unique
 
     # Build the complex settings objects
     $complexSettings = @{
@@ -564,15 +574,15 @@ function Assert-DecryptionTransportRule {
 # Debugging.
 
 function Enable-AllLabelsAndPolicies {
-    Get-DlpCompliancePolicy | Set-DlpCompliancePolicy -Mode 'Enable'
-    Get-AutoSensitivityLabelPolicy | Set-AutoSensitivityLabelPolicy -Mode 'Enable'
-    Get-TransportRule | Set-TransportRule -Mode 'Enable'
+    Get-DlpCompliancePolicy | Where-Object { ($_.Name -like 'EPMS - *') } | Set-DlpCompliancePolicy -Mode 'Enable'
+    Get-AutoSensitivityLabelPolicy | Where-Object { ($_.Name -like 'EPMS - *') } | Set-AutoSensitivityLabelPolicy -Mode 'Enable'
+    Get-TransportRule | Where-Object { ($_.Name -like 'EPMS - *') } | Set-TransportRule -Mode 'Enable'
 }
 
 function Disable-AllLabelsAndPolicies {
-    Get-DlpCompliancePolicy | Set-DlpCompliancePolicy -Mode 'TestWithoutNotifications'
-    Get-AutoSensitivityLabelPolicy | Set-AutoSensitivityLabelPolicy -Mode 'TestWithoutNotifications'
-    Get-TransportRule | Set-TransportRule -Mode 'Audit'
+    Get-DlpCompliancePolicy | Where-Object { ($_.Name -like 'EPMS - *') } | Set-DlpCompliancePolicy -Mode 'TestWithoutNotifications'
+    Get-AutoSensitivityLabelPolicy | Where-Object { ($_.Name -like 'EPMS - *') } | Set-AutoSensitivityLabelPolicy -Mode 'TestWithoutNotifications'
+    Get-TransportRule | Where-Object { ($_.Name -like 'EPMS - *') } | Set-TransportRule -Mode 'Audit'
 }
 
 

@@ -65,11 +65,11 @@ $labelPolicies = Get-EPMSLabelPolicies
 # Enumerate the configuration and provision our labels, auto-labelling policies, and dlp policies.
 foreach ($label in $labels) {
 
-    Write-Log -Message "Enumerating: $($label.Identifier)" -Level 'Success'
+    Write-Log -Message "Enumerating label: $($label.Identifier)" -Level 'Success'
     
     # Configure the sensitivity labels.
     Assert-EPMSLabel `
-        -DisplayName $label.LabelDisplayName `
+        -LabelDisplayName $label.LabelDisplayName `
         -Tooltip $label.Tooltip `
         -DocumentMarkingText $label.DocumentMarkingText `
         -Hierarchy $label.Hierarchy `
@@ -103,21 +103,29 @@ foreach ($label in $labels) {
 # Enumerate the configuration and provision our client side/manual labelling policies.
 foreach ($policy in $labelPolicies) {
 
-    Write-Log -Message "Enumerating: $($policy.Identifier)" -Level 'Success'
+    Write-Log -Message "Enumerating policy: $($policy.Identifier)" -Level 'Success'
 
-    # Configure the sensitivity label policy.
+    # Configure the sensitivity label policy. We don't include parent labels.
     Assert-EPMSLabelPolicy `
         -DisplayName $policy.DisplayName `
-        -Labels (($labels | Where-Object { $_.LabelPolicy -eq $policy.Identifier}).LabelDisplayName) `
+        -Labels (($labels | Where-Object { ($_.LabelPolicy -eq $policy.Identifier) -and ($_.Hierarchy -ne 'IsParent')}).LabelDisplayName) `
         -DeployTo $policy.DeployTo
 
     Write-Log -Message ""
 
 }
 
-# Create the ETR to strip encryption for mail send to trusted domains.
+# Now that the child labels are attached, strip the temporary ' [parent]' name from our parent labels so they look pretty.
+foreach ($label in $labels | Where-Object {$_.Hierarchy -eq 'IsParent'}) {
+    Write-Log -Message "Validating display name of parent label $($label.LabelDisplayName)."
+    Remove-StringFromLabelName `
+        -LabelDisplayName $label.LabelDisplayName `
+        -RegularExpression "\s\[Parent\]$"
+}
+
+# Create the ETR to strip encryption for mail sent to trusted domains.
 $authorisedDomains = Get-EPMSDomains
-Assert-DecryptionTransportRule -DisplayName 'EPMS - Strip encryption for outgoing emails and attachments' -TrustedDomains $authorisedDomains
+Assert-DecryptionTransportRule -TrustedDomains $authorisedDomains
 
 # Disconnect!
 Assert-ServiceConnection -Disconnect

@@ -21,7 +21,7 @@ function Get-EPMSLabels {
         }
         [PSCustomObject]@{
             Identifier          = "official-parent"
-            LabelDisplayName    = "OFFICIAL [Parent]"
+            LabelDisplayName    = "OFFICIAL [Parent]" # keep the [parent] value to avoid issues with duplicate names
             Tooltip             = "Parent label for visual purposes."
             Hierarchy           = "IsParent"
             LabelPolicy         = 'standard-labels'
@@ -53,22 +53,9 @@ function Get-EPMSLabels {
             LabelPolicy         = 'standard-labels'
         } 
         [PSCustomObject]@{
-            Identifier          = 'official-sensitive-legislative-secrecy'
-            LabelDisplayName    = "OFFICIAL - Sensitive - Legislative-Secrecy"
-            Tooltip             = "TBC"
-            HeaderRegex         = "(?im)(sec=official:sensitive\u002C\saccess=legislative-secrecy)"
-            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Legislative-Secrecy, ORIGIN=transport.rule@contoso.com"
-            SubjectRegex        = "(?im)(sec=official:sensitive\u002C\saccess=legislative-secrecy)"
-            SubjectExample      = "[SEC=OFFICIAL:Sensitive, ACCESS=Legislative-Secrecy]"   
-            DocumentMarkingText = "OFFICIAL:Sensitive//Legislative-Secrecy"         
-            ParentLabel         = "OFFICIAL [Parent]"
-            Hierarchy           = "HasParent"
-            LabelPolicy         = 'standard-labels'
-        }
-        [PSCustomObject]@{
-            Identifier          = 'official-sensitive-legal-privilege'
+            Identifier          = 'official-sensitive-lp'
             LabelDisplayName    = "OFFICIAL - Sensitive - Legal Privilege"
-            Tooltip             = "TBC"
+            Tooltip             = "Limited damage to an individual, organisation or government generally if compromised. Restrictions on access to, or use of, information covered by legal professional privilege."
             HeaderRegex         = "(?im)(sec=official:sensitive\u002C\saccess=legal-privilege)"
             HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Legal-Privilege, ORIGIN=transport.rule@contoso.com"
             SubjectRegex        = "(?im)(sec=official:sensitive\u002C\saccess=legal-privilege)"
@@ -77,11 +64,24 @@ function Get-EPMSLabels {
             ParentLabel         = "OFFICIAL [Parent]"
             Hierarchy           = "HasParent"
             LabelPolicy         = 'standard-labels'
-        }       
+        }         
         [PSCustomObject]@{
-            Identifier          = 'official-sensitive-personal-privacy'
+            Identifier          = 'official-sensitive-ls'
+            LabelDisplayName    = "OFFICIAL - Sensitive - Legislative-Secrecy"
+            Tooltip             = "Limited damage to an individual, organisation or government generally if compromised. Restrictions on access to, or use of, information covered by specific legislative secrecy provisions."
+            HeaderRegex         = "(?im)(sec=official:sensitive\u002C\saccess=legislative-secrecy)"
+            HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Legislative-Secrecy, ORIGIN=transport.rule@contoso.com"
+            SubjectRegex        = "(?im)(sec=official:sensitive\u002C\saccess=legislative-secrecy)"
+            SubjectExample      = "[SEC=OFFICIAL:Sensitive, ACCESS=Legislative-Secrecy]"   
+            DocumentMarkingText = "OFFICIAL:Sensitive//Legislative-Secrecy"         
+            ParentLabel         = "OFFICIAL [Parent]"
+            Hierarchy           = "HasParent"
+            LabelPolicy         = 'standard-labels'
+        }      
+        [PSCustomObject]@{
+            Identifier          = 'official-sensitive-pp'
             LabelDisplayName    = "OFFICIAL - Sensitive - Personal Privacy"
-            Tooltip             = "TBC"
+            Tooltip             = "Limited damage to an individual, organisation or government generally if compromised. Restrictions under the Privacy Act on access to, or use of, personal information collected for business purposes."
             HeaderRegex         = "(?im)(sec=official:sensitive\u002C\saccess=personal-privacy)"
             HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Personal-Privacy, ORIGIN=transport.rule@contoso.com"
             SubjectRegex        = "(?im)(sec=official:sensitive\u002C\saccess=personal-privacy)"
@@ -93,7 +93,7 @@ function Get-EPMSLabels {
         }  
         [PSCustomObject]@{
             Identifier          = 'protected-parent'
-            LabelDisplayName    = "PROTECTED [Parent]"
+            LabelDisplayName    = "PROTECTED [Parent]" # keep the [parent] value to avoid issues with duplicate names
             Tooltip             = "Parent label for visual purposes."
             Hierarchy           = "IsParent"
             LabelPolicy         = 'protected-labels'
@@ -112,9 +112,9 @@ function Get-EPMSLabels {
             LabelPolicy         = 'protected-labels'
         }
         [PSCustomObject]@{
-            Identifier          = 'protected-legal-privilege'
+            Identifier          = 'protected-lp'
             LabelDisplayName    = "PROTECTED - Legal-Privilege"
-            Tooltip             = "High business impact. Damage to the national interest, organisations or individuals."
+            Tooltip             = "High business impact. Damage to the national interest, organisations or individuals. Restrictions on access to, or use of, information covered by legal professional privilege."
             HeaderRegex         = "(?im)(sec=protected\u002C\saccess=legal-privilege)"
             HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ACCESS=Legal-Privilege, ORIGIN=transport.rule@contoso.com"
             SubjectRegex        = "(?im)(sec=protected\u002C\saccess=legal-privilege)"
@@ -125,9 +125,9 @@ function Get-EPMSLabels {
             LabelPolicy         = 'protected-labels'
         }
         [PSCustomObject]@{
-            Identifier          = 'protected-legislative-secrecy'
+            Identifier          = 'protected-ls'
             LabelDisplayName    = "PROTECTED - Legislative-Secrecy"
-            Tooltip             = "High business impact. Damage to the national interest, organisations or individuals."
+            Tooltip             = "High business impact. Damage to the national interest, organisations or individuals. Restrictions on access to, or use of, information covered by specific legislative secrecy provisions."
             HeaderRegex         = "(?im)(sec=protected\u002C\saccess=legislative-secrecy)"
             HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ACCESS=Legislative-Secrecy, ORIGIN=transport.rule@contoso.com"
             SubjectRegex        = "(?im)(sec=protected\u002C\saccess=legislative-secrecy)"
@@ -138,9 +138,9 @@ function Get-EPMSLabels {
             LabelPolicy         = 'protected-labels'
         }
         [PSCustomObject]@{
-            Identifier          = 'protected-personal-privacy'
+            Identifier          = 'protected-pp'
             LabelDisplayName    = "PROTECTED - Personal-Privacy"
-            Tooltip             = "High business impact. Damage to the national interest, organisations or individuals."
+            Tooltip             = "High business impact. Damage to the national interest, organisations or individuals. Restrictions under the Privacy Act on access to, or use of, personal information collected for business purposes."
             HeaderRegex         = "(?im)(sec=protected\u002C\saccess=personal-privacy)"
             HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ACCESS=Personal-Privacy, ORIGIN=transport.rule@contoso.com"
             SubjectRegex        = "(?im)(sec=protected\u002C\saccess=personal-privacy)"
@@ -157,19 +157,19 @@ function Get-EPMSLabelPolicies {
     return [PSCustomObject]@(
         [PSCustomObject]@{
             Identifier          = "standard-labels"
-            DisplayName         = "Deploy standard labels to all staff"
+            DisplayName         = "PSPF - Deploy standard labels to all staff"
             DeployTo            = "All"
         }
         [PSCustomObject]@{
             Identifier          = "protected-labels"
-            DisplayName         = "Deploy protected labels to cleared staff"
+            DisplayName         = "PSPF - Deploy protected labels to cleared staff"
             DeployTo            = "protected-labels-mail-enabled-security-group"
         }
     )    
 }
 
+# Add additional domains into here as required.
 function Get-EPMSDomains {
-    # Add additional domains into here as required.
     return @(
         'contoso-1.com', 
         'contoso-2.com',

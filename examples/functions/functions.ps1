@@ -49,8 +49,6 @@ function Assert-ServiceConnection {
         throw
     }
 
-    Disconnect-ExchangeOnline -Confirm:$false -InformationAction Ignore -ErrorAction SilentlyContinue
-
     try {
 
         Import-Module ExchangeOnlineManagement -ErrorAction Stop
@@ -81,7 +79,7 @@ function Assert-GraphConnection {
 
     Write-Log "Removing any existing Graph connections."
 
-    Disconnect-MgGraph 
+    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
     
     try {
 
@@ -111,57 +109,97 @@ function Assert-GraphConnection {
 function Get-SensitivityLabelByDisplayName {
     Param(
         [string] $DisplayName,
-        [switch] $ThrowIfMissing
-    )
+        [switch] $ExcludeParentLabels,
+        [switch] $ParentLabelsOnly
+    )  
+    <#
+    There is no easy way to distinguish the difference between a parent label with children, and a normal root label without children by looking at the label itself.
+    All the properties are the same. There is an internal IsParent property which looks great, but as far as I can tell it doesn't work, which means we get creative.
+    If we look at all labels, any with a ParentId property can easily be considered child labels. We are inferring that the label is a child label based upon the fact it has a parent.
+    Therefore, the label guid listed in the ParentId property must be considered a parent label. This allows us to then filter in or out those ParentId guids based on our requirements.
+    #>
 
-    $label = Get-Label | Where-Object { ($_.DisplayName -eq $DisplayName) -and ($_.Mode -ne 'PendingDeletion') }
+    # Get all labels.
+    $allLabels = Get-Label | Where-Object { $_.Mode -ne 'PendingDeletion' }
 
-    if ($label) {
-        return $label
-    } else {
-        if ($ThrowIfMissing) {
-            Write-Log -Message "Sensitivity label '$DisplayName' does not exist." -Level 'Error'
-            throw
-        }
-        return $false
-    }
+    # Record any ParentId attributes.
+    $parentIds = ($allLabels | Where-Object { $null -ne $_.ParentId}).ParentId | Get-Unique
+
+    # We want to exclude parent labels from our query.
+    if ($ExcludeParentLabels) {
+
+        # Remove labels with these GUIDs from our object.
+        $filteredLabels = $allLabels | Where-Object { $_.Guid -notin $parentIds}
+
+        # Return the label with a given display name from our filtered result.
+        return $filteredLabels | Where-Object { $_.DisplayName -eq $DisplayName }
+    } 
+
+    # We want to include only parent labels in our query.
+    if ($ParentLabelsOnly) {
+
+        # Remove labels with these GUIDs from our object.
+        $filteredLabels = $allLabels | Where-Object { $_.Guid -in $parentIds}
+
+        # Return the label with a given display name from our filtered result.
+        return $filteredLabels | Where-Object { $_.DisplayName -eq $DisplayName }
+    } 
+
+    # Otherwise, run our search across all labels.
+    return Get-Label | Where-Object { ($_.DisplayName -eq $DisplayName) -and ($_.Mode -ne 'PendingDeletion') }
+
 }
+
 function Assert-EPMSLabel {
     param(
-        [string] $DisplayName,
+        [string] $LabelDisplayName,
         [string] $Tooltip,
         [string] $DocumentMarkingText,
         [string] $Hierarchy,
         [string] $ParentLabelDisplayName
       )
-    # Check for existance.
-    if ($label = Get-Label | Where-Object { ($_.DisplayName -eq $DisplayName) -and ($_.Mode -ne 'PendingDeletion') }) {
-        Write-Log -Message "Existing label with name '$DisplayName' detected. Skipping." -Level 'Warning'
-        return
-    }
-
+    
     # If it's a parent label for visual purposes only, configure the essentials.
     if ($Hierarchy -eq 'IsParent') {
-       
-        Write-Log -Message "Creating parent label '$DisplayName'." 
+        
+        # Check for existance. We will look for parent labels with the placeholder '<label> [Parent]' and end state '<label>' display names.
+        $renamedDisplayName = $LabelDisplayName -replace "\s\[Parent\]$", ""
+
+        $deployedLabel = Get-SensitivityLabelByDisplayName -DisplayName $LabelDisplayName -ParentLabelsOnly
+        $deployedLabelRenamed = Get-SensitivityLabelByDisplayName  -DisplayName $renamedDisplayName -ParentLabelsOnly
+
+        if ($deployedLabel -or $deployedLabelRenamed) {
+            Write-Log -Message "Existing parent label with name '$LabelDisplayName' or '$renamedDisplayName' detected." -Level 'Warning'
+            return
+        }         
+
+        Write-Log -Message "Creating parent label '$LabelDisplayName'." 
 
         $label = New-Label `
-            -DisplayName $DisplayName `
+            -DisplayName $LabelDisplayName `
             -Name $(New-Guid) `
-            -Comment 'Provides EPMS support in Microsoft 365' `
+            -Comment 'Provides EPMS support in Microsoft 365. This is a parent label that is used to logically group child labels. It is not used to apply sensitivity.' `
             -Tooltip $Tooltip `
             -ContentType 'File, Email, Site, UnifiedGroup, PurviewAssets'            
 
     # Else it's in the root with no parent or is a child label with a parent, so configure a full label.
     } else {
-        
-        Write-Log -Message "Creating root or child label '$DisplayName'."
+
+        # Check for existance.
+        $deployedLabel = Get-SensitivityLabelByDisplayName -DisplayName $LabelDisplayName
+
+        if ($deployedLabel) {
+            Write-Log -Message "Existing label with name '$LabelDisplayName' detected." -Level 'Warning'
+            return
+        }         
+
+        Write-Log -Message "Creating root or child label '$LabelDisplayName'."
 
         # Configure a fully fledged label.
         $label = New-Label `
-            -DisplayName $DisplayName `
+            -DisplayName $LabelDisplayName `
             -Name $(New-Guid) `
-            -Comment 'Provides EPMS support in Microsoft 365' `
+            -Comment 'Provides EPMS support in Microsoft 365. This is a root or child label that is used to apply sensitivity.' `
             -Tooltip $Tooltip `
             -ApplyContentMarkingFooterEnabled $true `
             -ApplyContentMarkingFooterAlignment 'Center' `
@@ -178,8 +216,8 @@ function Assert-EPMSLabel {
 
     # Finally, assign a parent label to the child, if required.
     if ($Hierarchy -eq 'HasParent') {
-        Write-Log -Message "Setting parent label for '$($label.displayName)' to '$($ParentLabelDisplayName)'."
-        $parentLabel = Get-Label | Where-Object { ($_.DisplayName -eq $ParentLabelDisplayName) -and ($_.Mode -ne 'PendingDeletion') }
+        Write-Log -Message "Setting parent label for '$($label.LabelDisplayName)' to '$($ParentLabelDisplayName)'."
+        $parentLabel = Get-SensitivityLabelByDisplayName -DisplayName $ParentLabelDisplayName
         Set-Label -Identity $($label.Guid) -ParentId $parentLabel.Guid
     }
 }
@@ -269,13 +307,13 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
     Write-Log -Message "Configuring auto-labelling for '$($LabelDisplayName)'."
 
     # Ensure the sensitivity label we are linking the policy to exists.
-    $deployedLabel = Get-Label | Where-Object { ($_.DisplayName -eq $LabelDisplayName) -and ($_.Mode -ne 'PendingDeletion') }
-            
+    $deployedLabel = Get-SensitivityLabelByDisplayName -DisplayName $LabelDisplayName -ExcludeParentLabels
+
     if (-not($deployedLabel)) {
-        Throw "Could not get the deployed label details."
+        Throw "Could not get the deployed label details for $LabelDisplayName."
     }
 
-    $policyName = "Auto-label '$($Identifier)' mail" # 64 characters, max
+    $policyName = "EPMS - Auto-label '$($Identifier)' mail" # 64 characters, max
     $ruleName = "Detect x-header for '$($Identifier)'" # 64 characters, max    
 
     # Check if the auto-labelling policy already exists, updating if it so.    
@@ -284,7 +322,7 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
             Write-Log -Message "Auto-labelling policy '$policyName' exists in a pending deletion state. Cannot update." -Level 'Warning'
             return
         } else {
-            Write-Log -Message "Auto-labelling policy '$policyName' exists, updating."
+            Write-Log -Message "`tAuto-labelling policy '$policyName' exists, updating."
             Set-AutoSensitivityLabelPolicy `
                 -Identity $policyName `
                 -ApplySensitivityLabel $deployedLabel.Guid `
@@ -294,7 +332,7 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
         }
     } else {
         # Thrash out a new one.
-        Write-Log -Message "Creating auto-labelling policy: $policyName"
+        Write-Log -Message "`tCreating auto-labelling policy: '$policyName'"
 
         New-AutoSensitivityLabelPolicy `
             -Name $policyName `
@@ -315,7 +353,7 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
         } else {
             # Note that we can't changed the linked ParentPolicyName without deleting and re-creating the rule.
             if ($rule.ParentPolicyName -eq $policyName) {
-                Write-Log -Message "Auto-labelling rule '$ruleName' exists, updating."
+                Write-Log -Message "`tAuto-labelling rule '$ruleName' exists, updating."
                 Set-AutoSensitivityLabelRule `
                     -Identity $ruleName `
                     -HeaderMatchesPatterns @{"x-protective-marking" =  $HeaderRegex} `
@@ -327,7 +365,7 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
         }
     } else {
         # Thrash out a new one.
-        Write-Log -Message "Creating auto-labelling policy rule: $ruleName"
+        Write-Log -Message "Creating auto-labelling policy rule: '$ruleName'"
 
         New-AutoSensitivityLabelRule `
             -Name $ruleName `
@@ -348,19 +386,15 @@ function Assert-DlpCompliancePolicyAndRule {
     Write-Log -Message "Configuring intelligent auto-subject append for '$($LabelDisplayName)'."
     
     # Ensure the sensitivity label we are linking the policy to exists.
-    $deployedLabel = Get-SensitivityLabelByDisplayName -DisplayName $LabelDisplayName -ThrowIfMissing
+    $deployedLabel = Get-SensitivityLabelByDisplayName -DisplayName $LabelDisplayName -ExcludeParentLabels
 
-    if (-not($deployedLabel)) {
-        Throw "Could not get the deployed label details."
-    }
-
-    $policyName = "Subject append '$identifier' mail" # max 64 characters
-    $ruleName = "If '$LabelDisplayName', append subject" # max 64 characters      
+    $policyName = "EPMS - Subject append '$identifier' mail" # max 64 characters
+    $ruleName = "EPMS - If '$identifier' label, append subject" # max 64 characters      
 
     # Check if the auto-labelling policy already exists, updating if it so.    
     if(Get-DlpCompliancePolicy | Where-Object { ($_.Name -eq $policyName) }) {
         
-        Write-Log -Message "Compliance policy '$policyName' exists, updating."
+        Write-Log -Message "`tCompliance policy '$policyName' exists, updating."
 
         Set-DlpCompliancePolicy `
             -Identity $policyName `
@@ -368,7 +402,7 @@ function Assert-DlpCompliancePolicyAndRule {
 
     } else {
 
-        Write-Log -Message "Creating compliance policy '$policyName'."
+        Write-Log -Message "`tCreating compliance policy: '$policyName'."
 
         New-DlpCompliancePolicy `
             -Name $policyName `
@@ -406,19 +440,19 @@ function Assert-DlpCompliancePolicyAndRule {
     if($rule = Get-DlpComplianceRule | Where-Object { ($_.Name -eq $ruleName) }) {
 
         if ($rule.Mode -eq 'PendingDeletion') {
-            Write-Log -Message "Compliance rule '$ruleName' exists in a pending deletion state. Cannot update." -Level 'Warning'
+            Write-Log -Message "`tCompliance rule '$ruleName' exists in a pending deletion state. Cannot update." -Level 'Warning'
             return
         } else {        
             # Note that we can't changed the linked ParentPolicyName without deleting and re-creating the rule.
             if ($rule.ParentPolicyName -eq $policyName) {
-            Write-Log -Message "Compliance rule '$ruleName' exists, updating."
+            Write-Log -Message "`tCompliance rule '$ruleName' exists, updating."
 
             Set-DlpComplianceRule `
                 -Identity $ruleName `
                 -ContentContainsSensitiveInformation $complexSensitiveInformationRule `
                 -ModifySubject $complexModifySubjectRule `
             } else {
-                Write-Log -Message "Compliance rule '$ruleName' exists, but is not linked to '$policyName'. Cannot update." -Level 'Warning'
+                Write-Log -Message "`tCompliance rule '$ruleName' exists, but is not linked to '$policyName'. Cannot update." -Level 'Warning'
                 return                
             }
         }
@@ -435,6 +469,26 @@ function Assert-DlpCompliancePolicyAndRule {
     }
 }
 
+function Remove-StringFromLabelName {
+    param(
+        [string] $LabelDisplayName,
+        [string] $RegularExpression
+    )
+
+    # Ensure the sensitivity label we are linking the policy to exists.
+    $deployedLabel = Get-SensitivityLabelByDisplayName -DisplayName $LabelDisplayName
+
+    if (-not($deployedLabel)) {
+        return
+    } 
+
+    # If the label contains our regular expression string, remove it.
+    if ($deployedLabel.DisplayName -match $RegularExpression) {
+        Write-Host "Removing '$RegularExpression' from the display name of '$($deployedLabel.DisplayName)'."
+        Set-Label -Identity $($deployedLabel.Guid) -DisplayName $($deployedLabel.DisplayName -replace $RegularExpression, "")
+    }
+}
+
 function Assert-HeaderTransportRule {
     param(
         [string] $Identifier,
@@ -445,17 +499,17 @@ function Assert-HeaderTransportRule {
     Write-Log -Message "Configuring x-protective-marking header insertion for '$($LabelDisplayName)'."
     
     # Ensure the sensitivity label we are linking the policy to exists.
-    $deployedLabel = Get-SensitivityLabelByDisplayName -DisplayName $LabelDisplayName -ThrowIfMissing
+    $deployedLabel = Get-SensitivityLabelByDisplayName -DisplayName $LabelDisplayName -ExcludeParentLabels
 
     if (-not($deployedLabel)) {
         Throw "Could not get the deployed label details."
-    }
+    }    
 
-    $ruleName = "EPMS - x-header for label '$($deployedLabel.guid)'" # max 64 characters
+    $ruleName = "EPMS - Insert header for '$Identifier'" # max 64 characters
     $comment = "This transport rule writes the relevant x-protective-marking header when mail flagged with the internal '$($deployedLabel.DisplayName)' sensitivity label is detected."
 
     If (Get-TransportRule -Identity $ruleName -ErrorAction SilentlyContinue) {
-        Write-Log -Message "Transport rule '$ruleName' exists, updating."
+        Write-Log -Message "`tTransport rule '$ruleName' exists, updating."
         Set-TransportRule `
             -Identity $ruleName `
             -HeaderMatchesMessageHeader 'msip_labels' `
@@ -465,7 +519,7 @@ function Assert-HeaderTransportRule {
             -Comments $comment
             | Out-Null
     } else {
-        Write-Log -Message "Creating new transport rule '$ruleName'."
+        Write-Log -Message "`tCreating new transport rule '$ruleName'."
         New-TransportRule `
             -Name $ruleName `
             -HeaderMatchesMessageHeader 'msip_labels' `
@@ -480,23 +534,24 @@ function Assert-HeaderTransportRule {
 
 function Assert-DecryptionTransportRule {
     param(
-        [string] $DisplayName,
         [string[]] $TrustedDomains
     )
 
-    If (Get-TransportRule -Identity $DisplayName -ErrorAction SilentlyContinue) {
-        Write-Log -Message "Transport rule '$DisplayName' exists, updating."
+    $ruleName = 'EPMS - Strip encryption for outgoing emails and attachments'
+
+    If (Get-TransportRule -Identity $ruleName -ErrorAction SilentlyContinue) {
+        Write-Log -Message "Transport rule '$ruleName' exists, updating."
         Set-TransportRule `
-            -Identity $DisplayName `
+            -Identity $ruleName `
             -FromScope 'InOrganization' `
             -RecipientDomainIs $TrustedDomains `
             -RemoveOMEv2 $true `
             -RemoveRMSAttachmentEncryption $true `
             | Out-Null           
     } else {
-        Write-Log -Message "Creating new transport rule '$DisplayName'."
+        Write-Log -Message "Creating new transport rule '$ruleName'."
         New-TransportRule `
-            -Name $DisplayName `
+            -Name $ruleName `
             -FromScope 'InOrganization' `
             -RecipientDomainIs $TrustedDomains `
             -RemoveOMEv2 $true `
@@ -523,7 +578,7 @@ function Disable-AllLabelsAndPolicies {
 
 function Remove-AllLabelsAndPolicies {
 
-    $compliancePolicies = Get-DlpCompliancePolicy | Where-Object { $_.mode -ne 'PendingDeletion' }
+    $compliancePolicies = Get-DlpCompliancePolicy | Where-Object { ($_.mode -ne 'PendingDeletion') -and ($_.name -like 'EPMS - *') }
     if ($compliancePolicies) {
         Write-Log -Message "Removing $($compliancePolicies.Count) compliance policies." -Level 'Warning'
         $compliancePolicies | Remove-DlpCompliancePolicy -Confirm:$true
@@ -531,7 +586,7 @@ function Remove-AllLabelsAndPolicies {
         Write-Log -Message "No DLP compliance policies to delete."
     }
 
-    $autoLabelPolicies = Get-AutoSensitivityLabelPolicy | Where-Object { $_.mode -ne 'PendingDeletion' }
+    $autoLabelPolicies = Get-AutoSensitivityLabelPolicy | Where-Object { ($_.mode -ne 'PendingDeletion') -and ($_.name -like 'EPMS - *') }
     if ($autoLabelPolicies) {
         Write-Log -Message "`tRemoving $($autoLabelPolicies.Count) auto-labelling policies." -Level 'Warning'
         $autoLabelPolicies | Remove-AutoSensitivityLabelPolicy -Confirm:$true
@@ -539,7 +594,7 @@ function Remove-AllLabelsAndPolicies {
         Write-Log -Message "No auto-labling policies to delete."
     }
 
-    $labelPolicies = Get-LabelPolicy | Where-Object { $_.mode -ne 'PendingDeletion' }
+    $labelPolicies = Get-LabelPolicy | Where-Object { ($_.mode -ne 'PendingDeletion') -and ($_.name -like 'PSPF - *') }
     if ($labelPolicies) {
         Write-Log -Message "`tRemoving $($labelPolicies.Count) manual labeling policies." -Level 'Warning'
         $labelPolicies | Remove-LabelPolicy -Confirm:$true
@@ -569,6 +624,14 @@ function Remove-AllLabelsAndPolicies {
 
     } else {
         Write-Log -Message "No sensitivity labels to delete."
+    }
+    
+    $transportRules = Get-TransportRule | Where-Object { ($_.mode -ne 'PendingDeletion') -and ($_.name -like 'EPMS - *') }
+    if ($transportRules) {
+        Write-Log -Message "`tRemoving $($transportRules.Count) transport rules." -Level 'Warning'
+        $transportRules | Remove-TransportRule -Confirm:$true
+    } else {
+        Write-Log -Message "No transport rules to delete."
     }    
 }
 

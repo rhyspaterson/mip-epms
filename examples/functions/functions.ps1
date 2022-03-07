@@ -178,7 +178,7 @@ function Assert-EPMSLabel {
         $label = New-Label `
             -DisplayName $LabelDisplayName `
             -Name $(New-Guid) `
-            -Comment 'Provides EPMS support in Microsoft 365. This is a parent label that is used to logically group child labels. It is not used to apply sensitivity.' `
+            -Comment 'Provides EPMS support in Microsoft 365. This is a parent label that is used to logically group child/sublabels. It is not used to apply sensitivity.' `
             -Tooltip $Tooltip `
             -ContentType 'File, Email, Site, UnifiedGroup, PurviewAssets'            
 
@@ -199,7 +199,7 @@ function Assert-EPMSLabel {
         $label = New-Label `
             -DisplayName $LabelDisplayName `
             -Name $(New-Guid) `
-            -Comment 'Provides EPMS support in Microsoft 365. This is a root or child label that is used to apply sensitivity.' `
+            -Comment 'Provides EPMS support in Microsoft 365. This is a root or child/sublabel that is used to apply sensitivity.' `
             -Tooltip $Tooltip `
             -ApplyContentMarkingFooterEnabled $true `
             -ApplyContentMarkingFooterAlignment 'Center' `
@@ -494,7 +494,7 @@ function Remove-StringFromLabelName {
 
     # If the label contains our regular expression string, remove it.
     if ($deployedLabel.DisplayName -match $RegularExpression) {
-        Write-Host "Removing '$RegularExpression' from the display name of '$($deployedLabel.DisplayName)'."
+        Write-Log -Message "Removing '$RegularExpression' from the display name of '$($deployedLabel.DisplayName)'."
         Set-Label -Identity $($deployedLabel.Guid) -DisplayName $($deployedLabel.DisplayName -replace $RegularExpression, "")
     }
 }
@@ -516,7 +516,10 @@ function Assert-HeaderTransportRule {
     }    
 
     $ruleName = "EPMS - Insert header for '$Identifier'" # max 64 characters
-    $comment = "This transport rule writes the relevant x-protective-marking header when mail flagged with the internal '$($deployedLabel.DisplayName)' sensitivity label is detected."
+    $comment = "Inserts the relevant x-protective-marking header when mail flagged with the internal '$($Identifier)' sensitivity label is detected."
+
+    # Replace the {{UPN}} token in our ORIGIN= string to something a bit more informative.
+    $HeaderExample = $HeaderExample -replace "{{UPN}}", "transport.rule@$((Get-OrganizationConfig).Name)"
 
     If (Get-TransportRule -Identity $ruleName -ErrorAction SilentlyContinue) {
         Write-Log -Message "`tTransport rule '$ruleName' exists, updating."
@@ -548,6 +551,7 @@ function Assert-DecryptionTransportRule {
     )
 
     $ruleName = 'EPMS - Strip encryption for outgoing emails and attachments'
+    $comment = "Removes the encryiption associated with the internal sensitivity labels for the mail and relevant attachments."
 
     If (Get-TransportRule -Identity $ruleName -ErrorAction SilentlyContinue) {
         Write-Log -Message "Transport rule '$ruleName' exists, updating."
@@ -576,7 +580,7 @@ function Assert-DecryptionTransportRule {
 function Enable-AllLabelsAndPolicies {
     Get-DlpCompliancePolicy | Where-Object { ($_.Name -like 'EPMS - *') } | Set-DlpCompliancePolicy -Mode 'Enable'
     Get-AutoSensitivityLabelPolicy | Where-Object { ($_.Name -like 'EPMS - *') } | Set-AutoSensitivityLabelPolicy -Mode 'Enable'
-    Get-TransportRule | Where-Object { ($_.Name -like 'EPMS - *') } | Set-TransportRule -Mode 'Enable'
+    Get-TransportRule | Where-Object { ($_.Name -like 'EPMS - *') } | Set-TransportRule -Mode 'Enforce'
 }
 
 function Disable-AllLabelsAndPolicies {
@@ -612,23 +616,29 @@ function Remove-AllLabelsAndPolicies {
         Write-Log -Message "No manual label policies to delete."
     }
 
-    # TO DO, (Get-Label).ParentId.Guid
     [array] $skippedLabels = $null
-    $labels = Get-Label | Where-Object { $_.mode -ne 'PendingDeletion' }
-    if ($labels) {
-        Write-Log -Message "Removing $($labels.Count) sensitivity labels." -Level 'Warning'
+    $labels = Get-EPMSLabels
+    $deployedLabels = Get-Label | Where-Object { $_.mode -ne 'PendingDeletion' }
 
-        ForEach ($label in $labels) {
-            if ($null -ne $label.ParentId.Guid) {
-                # Label has no parent, we can delete it.
-                $label | Remove-Label -Confirm:$true
-            } else {
-                # Store it for a subsequent deletion.
-                $skippedLabels += $label.name
+    if ($deployedLabels) {
+        Write-Log -Message "Found $($deployedLabels.Count) sensitivity labels." -Level 'Warning'
+        
+        ForEach ($deployedLabel in $deployedLabels) {    
+            # Only trash labels with the same display names as our configuration.
+            if ($deployedLabel.DisplayName -in $labels.LabelDisplayName) {
+                Write-Log -Message "`tFound matching sensitivity label '$($deployedLabel.DisplayName)'. Removing." -Level 'Warning'
+                if ($null -ne $deployedLabel.ParentId.Guid) {
+                    # Label has no parent, we can delete it.
+                    $deployedLabel | Remove-Label -Confirm:$true
+                } else {
+                    # Store it for a subsequent deletion.
+                    $skippedLabels += $deployedLabel.name
+                }
             }
         }
         # Trash the skipped labels now that the childs are deleted.
         $skippedLabels | ForEach-Object {
+            Write-Log -Message "`tFound matching sensitivity label '$($_)'. Removing." -Level 'Warning'
             Remove-Label -Identity $_ -Confirm:$true
         }
 

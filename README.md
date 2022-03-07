@@ -4,7 +4,7 @@ This repository provides information and configuration as code to support (as mu
 
 Unlike purely client-side solutions, controls are implemented either client or server-side, depending on the scenario. The intent is to leverage the information protection services available within Microsoft 365 to provide a functional and practical data protection capability that supports zero trust, and negates the requirement for traditional client-side or perimeter controls to protect information. The focus is primarily to support Outlook using the native (non-AIP UL) sensitivity labelling clients that are built into the modern channels of the Microsoft productivity suite. This approach is cross-platform, supporting Windows, Mac, iOS, Android and web. 
 
-Please note that currently, this approach is **not** fully compliant with the EPMS specification, nor does it cater for other peripheral classification functionality. However, as new functionality is realised by the vendor that improves compliance, this repository will be updated to reflect that. Refer to the feature status section below for further information.
+Please note that currently, this approach is **not** fully compliant with the EPMS specification, nor does it cater for other peripheral classification functionality that might otherwise be expected through existing third-party integrations. However, as new functionality is realised by the vendor that improves compliance, this repository will be updated to reflect that. Refer to the feature status section below for further information.
 
 **Note:** This is an unofficial, personal project developed for research purposes.
 

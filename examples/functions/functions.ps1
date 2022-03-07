@@ -561,6 +561,7 @@ function Assert-DecryptionTransportRule {
             -RecipientDomainIs $TrustedDomains `
             -RemoveOMEv2 $true `
             -RemoveRMSAttachmentEncryption $true `
+            -Comments $comment `
             | Out-Null           
     } else {
         Write-Log -Message "Creating new transport rule '$ruleName'."
@@ -570,6 +571,7 @@ function Assert-DecryptionTransportRule {
             -RecipientDomainIs $TrustedDomains `
             -RemoveOMEv2 $true `
             -RemoveRMSAttachmentEncryption $true `
+            -Comments $comment `
             -Mode 'Audit' `
             | Out-Null
     }

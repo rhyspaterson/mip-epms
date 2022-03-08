@@ -7,6 +7,7 @@ Currently escpaing commas as unicode as the engine did not like that, either.
 
 function Get-EPMSLabels {
     return [PSCustomObject]@(
+        <#
         [PSCustomObject]@{
             Identifier          = "unofficial"
             LabelDisplayName    = "UNOFFICIAL"
@@ -17,6 +18,7 @@ function Get-EPMSLabels {
             SubjectExample      = "[SEC=UNOFFICIAL]"
             DocumentMarkingText = "UNOFFICIAL"        
             Hierarchy           = "NoParent"
+            Encrypted           = $false
             LabelPolicy         = 'standard-labels'
         }
         [PSCustomObject]@{
@@ -36,6 +38,7 @@ function Get-EPMSLabels {
             SubjectExample      = "[SEC=OFFICIAL]"   
             DocumentMarkingText = "OFFICIAL"
             Hierarchy           = "HasParent"
+            Encrypted           = $false
             LabelPolicy         = 'standard-labels'
         }    
         [PSCustomObject]@{
@@ -49,6 +52,7 @@ function Get-EPMSLabels {
             DocumentMarkingText = "OFFICIAL:Sensitive"      
             ParentLabel         = "OFFICIAL [Parent]"
             Hierarchy           = "HasParent"
+            Encrypted           = $false
             LabelPolicy         = 'standard-labels'
         } 
         [PSCustomObject]@{
@@ -62,6 +66,7 @@ function Get-EPMSLabels {
             DocumentMarkingText = "OFFICIAL:Sensitive//Legal-Privilege"         
             ParentLabel         = "OFFICIAL [Parent]"
             Hierarchy           = "HasParent"
+            Encrypted           = $false
             LabelPolicy         = 'standard-labels'
         }         
         [PSCustomObject]@{
@@ -75,6 +80,7 @@ function Get-EPMSLabels {
             DocumentMarkingText = "OFFICIAL:Sensitive//Legislative-Secrecy"         
             ParentLabel         = "OFFICIAL [Parent]"
             Hierarchy           = "HasParent"
+            Encrypted           = $false
             LabelPolicy         = 'standard-labels'
         }      
         [PSCustomObject]@{
@@ -88,8 +94,9 @@ function Get-EPMSLabels {
             DocumentMarkingText = "OFFICIAL:Sensitive//Personal-Privacy"
             ParentLabel         = "OFFICIAL [Parent]"
             Hierarchy           = "HasParent"
+            Encrypted           = $false
             LabelPolicy         = 'standard-labels'
-        }  
+        }  #>
         [PSCustomObject]@{
             Identifier          = 'protected-parent'
             LabelDisplayName    = "PROTECTED [Parent]" # keep the [parent] value to avoid issues with duplicate names
@@ -107,6 +114,7 @@ function Get-EPMSLabels {
             DocumentMarkingText = "PROTECTED"
             Hierarchy           = "HasParent"
             ParentLabel         = "PROTECTED [Parent]"
+            Encrypted           = $true
             LabelPolicy         = 'protected-labels'
         }
         [PSCustomObject]@{
@@ -120,6 +128,7 @@ function Get-EPMSLabels {
             DocumentMarkingText = "PROTECTED//Legal-Privilege"      
             Hierarchy           = "HasParent"
             ParentLabel         = "PROTECTED [Parent]"
+            Encrypted           = $true
             LabelPolicy         = 'protected-labels'
         }
         [PSCustomObject]@{
@@ -133,6 +142,7 @@ function Get-EPMSLabels {
             DocumentMarkingText = "PROTECTED//Legislative-Secrecy"      
             Hierarchy           = "HasParent"
             ParentLabel         = "PROTECTED [Parent]"
+            Encrypted           = $true
             LabelPolicy         = 'protected-labels'
         }
         [PSCustomObject]@{
@@ -146,8 +156,9 @@ function Get-EPMSLabels {
             DocumentMarkingText = "PROTECTED//Personal-Privacy"      
             Hierarchy           = "HasParent"
             ParentLabel         = "PROTECTED [Parent]"
+            Encrypted           = $true
             LabelPolicy         = 'protected-labels'
-        }
+        }      
     )
 }
 

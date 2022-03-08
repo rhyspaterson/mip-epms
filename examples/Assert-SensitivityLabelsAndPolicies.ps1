@@ -73,7 +73,8 @@ foreach ($label in $labels) {
         -Tooltip $label.Tooltip `
         -DocumentMarkingText $label.DocumentMarkingText `
         -Hierarchy $label.Hierarchy `
-        -ParentLabelDisplayName $label.ParentLabel       
+        -ParentLabelDisplayName $label.ParentLabel `
+        -EncryptionEnabled $label.Encrypted 
 
     if (-not($label.Hierarchy -eq 'IsParent')) {
         
@@ -94,7 +95,14 @@ foreach ($label in $labels) {
         Assert-HeaderTransportRule `
             -Identifier $label.Identifier `
             -LabelDisplayName $label.LabelDisplayName `
-            -HeaderExample $label.HeaderExample               
+            -HeaderExample $label.HeaderExample
+
+            # If we're applying encryption, configure rights management on the label. Use the group that the associated policy filters to. 
+            if ($label.Encrypted) {
+                Assert-LabelEncryption `
+                    -LabelDisplayName $label.LabelDisplayName `
+                    -DeployTo (($labelPolicies | Where-Object { $_.Identifier -eq $label.LabelPolicy }).DeployTo)
+            }            
     }
     
     Write-Log -Message ""

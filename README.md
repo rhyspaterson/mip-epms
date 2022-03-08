@@ -57,7 +57,9 @@ Please note that currently, this approach is **not** fully compliant with the EP
 
 If you'd like to skip to already-coded-part, check out the [complete provisioning example](https://github.com/rhyspaterson/mip-epms/#complete-provisioning-example). Otherwise, this will step through the approach in provisioning a label and the supporting configuration from scratch.
 
-Particularly if you are in an old or temporary tenant, ensure you have run `Execute-AzureAdLabelSync` and [enabled consent for Azure Purview](https://docs.microsoft.com/en-us/azure/purview/how-to-automatically-label-your-content#step-2-consent-to-use-sensitivity-labels-in-azure-purview) first. You'll also need a recent version of the [ExchangeOnlineManagement](https://www.powershellgallery.com/packages/ExchangeOnlineManagement) module.
+Particularly if you are in an old or temporary tenant, [ensure you have set](https://docs.microsoft.com/en-us/azure/active-directory/enterprise-users/groups-settings-cmdlets) `EnableMIPLabels = true` run `Execute-AzureAdLabelSync` and [enabled consent for Azure Purview](https://docs.microsoft.com/en-us/azure/purview/how-to-automatically-label-your-content#step-2-consent-to-use-sensitivity-labels-in-azure-purview) first. You'll also need a recent version of the [ExchangeOnlineManagement](https://www.powershellgallery.com/packages/ExchangeOnlineManagement) module.
+
+## Encryption-less approach
 
 ### Create our label
 
@@ -230,9 +232,36 @@ Here we define a new transport rule that queries the `msip_labels` x-header for 
 
 You could enhance this to be more specific in your mail flows, such as to only fire on mail sent outside the organisation via the `-SentToScope 'NotInOrganization'`, if you wished. Like the above approach, we've set the `mode` to `Audit`to allow us to deploy the policy but simulate the result without actually modifying the `x-protective-marking` header. Once we're happy, we can shift the `mode` to `Enforce`.
 
-### Configure encryption on the label/s
+That's it, we are done! You should be able to send emails internal and external to the organisation, with a compliant `x-protective-marking` header and subject line, noting the limitations documented at the top of this page. Not only that, but our data is also now labelled, which affords us a huge amount of additional control over it through, DLP, telemetry and the integration of labelling through the Microsoft 365 platform.
 
-TBC
+## Adding encryption
+
+This is somewhat outside the scope of the EPMS and PSPF, although a valuable addition from a data classificaiton and protection perspective. Adopting rights management, otherwise known as encryption or protection, provides for the implementation of strong cryptographic controls on the individual data. 
+
+Encrypting the individual data (e.g., a file, an email) allows us to move away from traditional perimeter controls such as the concepts of the trusted corporate network, secure enclaves or similar logical or physical boundary, firewalls or other inline or external security apparatus, or any other wild and exotic set of questionable traditional controls – which are almost always to the punitive degradation of the end user experience. 
+
+Adopting persistent encryption means the protections follows the data wherever it goes, at rest or in transit. The encryption is removed on demand by authorised users only through the rights management process. The location of the file is no longer the protection, rather it is based on the identity of the user. Even better, we can integrate these concepts into the broader security toolsets at our disposal, such as conditional access and the endless telemetry we have available. Even better again, we can enable business processes to allow for mixed groups of people access to data stores, inboxes, and the like, and not worry about accidental or malicious access to the sensitive content that is encrypted. 
+
+This allows people to operate with a fast feedback loop, in the same context as their peers, while still protecting individual assets at their relevant classification or protective marking. Want to delegate access to your inbox which contains sensitive information, your device was stolen, or you accidently or maliciously distributed content to someone or somewhere you shouldn’t? No problem. Rights management solves these issues. 
+Let’s turn it on!
+
+### Configure encryption on the label
+
+We're going to use a new label to demonstrate this capability. Repeating the above steps, we've created a new label. We've also deployed the label through a *new* label policy, to a specific set of people via a mail enabled security group. You can leverage the `ModernGroupLocation` parameter on the `New-LabelPolicy` cmdlet to do this. This means only specific people see this label, which is important for the end-user experience when we also apply rights-management to it. So let's get going with rights management and update our new label via `Set-Label`:
+
+```powershell
+Set-Label `
+    -Identity "<my-new-label-guid>" `
+    -EncryptionEnabled $true `
+    -EncryptionContentExpiredOnDateInDaysOrNever 'Never' `
+    -EncryptionOfflineAccessDays '-1' `
+    -EncryptionProtectionType 'Template' `
+    -EncryptionRightsDefinitions "my-security-group@contoso.com:VIEW,VIEWRIGHTSDATA,DOCEDIT,EDIT,PRINT,EXTRACT,REPLY,REPLYALL,FORWARD,OBJMODEL"
+```
+
+Here, we are enabling rights management on our existing label, and ensuring it never expires. We also allow access offline forever once it has been decrypted (your risk appetite may vary here). Finally, through the `EncryptionRightsDefinitions` property, we provide the 'co-owner' privilege to those who are a member of the `my-security-group@contoso.com` group we used in the `New-LabelPolicy` cmdlet above. This way, those who can see the label, are also authorised under rights management to decrypt the content. This co-owner privilege provides allows full rights to the data, except for the ability to permanently remove the encryption.
+
+That's it, you can apply this new label to your files or email and demonstrate the encryption. Try sharing it with someone who is, and is not a member of the the mail enabled security group. Once will be able to view, the other will not. You will need a [relatively modern version of the Office suite](https://docs.microsoft.com/en-us/microsoft-365/compliance/sensitivity-labels-office-apps) on your respective platform for this to function seamlessly.
 
 ### Configure the exchange online transport rules to decrypt
 
@@ -326,6 +355,10 @@ Where in the sensitivity label hierarchy the label resides. Can be one of:
 ```ParentLabel```
 
 Optional. If the label is a child label as defined above through `HasParent`, then this specifies the name of the relevant parent label.
+
+```Encrypted```
+
+Optional. If the label has rights management protections applied. Can be one of `$true` or `$false`. If `$true`, leverages the security group in the associated label policy as the identity to apply the `co-author` usage rights to.
 
 ```LabelPolicy```
 

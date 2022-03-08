@@ -222,6 +222,36 @@ function Assert-EPMSLabel {
     }
 }
 
+function Assert-LabelEncryption {
+    param(
+        [string] $LabelDisplayName,
+        [string] $DeployTo
+    )
+
+    Write-Log -Message "Apply encryption to root or child label '$LabelDisplayName' for '$DeployTo'."
+
+    # Ensure the sensitivity label we are linking the policy to exists.
+    $deployedLabel = Get-SensitivityLabelByDisplayName -DisplayName $LabelDisplayName -ExcludeParentLabels
+
+    if (-not($deployedLabel)) {
+        Throw "Could not get the deployed label details for $LabelDisplayName."
+    }
+   
+    # Ensure the distribution group we are linking the rights management to exists.
+    if (-not($distributionGroup = Get-DistributionGroup -Identity $DeployTo -ErrorAction SilentlyContinue)) {
+        Write-Log -Message "Could not find distribution group '$DeployTo', creating." -Level 'Warning'
+        $distributionGroup = New-DistributionGroup -Name $DeployTo -Type "Security"
+    }
+    
+    Set-Label `
+        -Identity $deployedLabel.Guid `
+        -EncryptionEnabled $true `
+        -EncryptionContentExpiredOnDateInDaysOrNever 'Never' `
+        -EncryptionOfflineAccessDays '-1' `
+        -EncryptionProtectionType 'Template' `
+        -EncryptionRightsDefinitions "$($distributionGroup.PrimarySmtpAddress):VIEW,VIEWRIGHTSDATA,DOCEDIT,EDIT,PRINT,EXTRACT,REPLY,REPLYALL,FORWARD,OBJMODEL"
+}
+
 function Assert-EPMSLabelPolicy {
     param(
         [string] $DisplayName,
@@ -330,6 +360,9 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
     if($policy = Get-AutoSensitivityLabelPolicy | Where-Object { ($_.Name -eq $policyName) }) {
         if ($policy.Mode -eq 'PendingDeletion') {
             Write-Log -Message "Auto-labelling policy '$policyName' exists in a pending deletion state. Cannot update." -Level 'Warning'
+            return
+        } elseif ($policy.Mode -eq 'Enable') {
+            Write-Log -Message "The auto-labelling policy '$policyName' is in 'Enable' mode. Cannot update the policy unless it is in test mode. Skipping." -Level 'Warning'
             return
         } else {
             Write-Log -Message "`tAuto-labelling policy '$policyName' exists, updating."

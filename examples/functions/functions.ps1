@@ -362,7 +362,7 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
             Write-Log -Message "Auto-labelling policy '$policyName' exists in a pending deletion state. Cannot update." -Level 'Warning'
             return
         } elseif ($policy.Mode -eq 'Enable') {
-            Write-Log -Message "The auto-labelling policy '$policyName' is in 'Enable' mode. Cannot update the policy unless it is in test mode. Skipping." -Level 'Warning'
+            Write-Log -Message "The auto-labelling policy '$policyName' is in 'Enable' mode. Cannot update the policy unless it is in test mode." -Level 'Warning'
             return
         } else {
             Write-Log -Message "`tAuto-labelling policy '$policyName' exists, updating."
@@ -391,7 +391,7 @@ function Assert-AutoSensitivityLabelPolicyAndRule {
             Write-Log -Message "Auto-labelling rule '$ruleName' exists in a pending deletion state. Cannot update." -Level 'Warning'
             return
         } elseif ($policy.Mode -eq 'Enable') {
-            Write-Log -Message "The associated auto-labelling parent policy '$policyName' is in 'Enable' mode. Cannot update the associated rule unless the parent policy is in test mode. Skipping. " -Level 'Warning'
+            Write-Log -Message "The associated auto-labelling parent policy '$policyName' is in 'Enable' mode. Cannot update the associated rule unless the parent policy is in test mode. " -Level 'Warning'
             return
         } else {
             # Note that we can't changed the linked ParentPolicyName without deleting and re-creating the rule.

@@ -7,7 +7,6 @@ Currently escpaing commas as unicode as the engine did not like that, either.
 
 function Get-EPMSLabels {
     return [PSCustomObject]@(
-        <#
         [PSCustomObject]@{
             Identifier          = "unofficial"
             LabelDisplayName    = "UNOFFICIAL"
@@ -96,7 +95,7 @@ function Get-EPMSLabels {
             Hierarchy           = "HasParent"
             Encrypted           = $false
             LabelPolicy         = 'standard-labels'
-        }  #>
+        }
         [PSCustomObject]@{
             Identifier          = 'protected-parent'
             LabelDisplayName    = "PROTECTED [Parent]" # keep the [parent] value to avoid issues with duplicate names

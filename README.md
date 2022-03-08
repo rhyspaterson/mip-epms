@@ -234,7 +234,7 @@ You could enhance this to be more specific in your mail flows, such as to only f
 
 That's it, we are done! You should be able to send emails internal and external to the organisation, with a compliant `x-protective-marking` header and subject line, noting the limitations documented at the top of this page. Not only that, but our data is also now labelled, which affords us a huge amount of additional control over it through, DLP, telemetry and the integration of labelling through the Microsoft 365 platform.
 
-## Adding encryption
+## Adding encryption to the approach
 
 This is somewhat outside the scope of the EPMS and PSPF, although a valuable addition from a data classificaiton and protection perspective. Adopting rights management, otherwise known as encryption or protection, provides for the implementation of strong cryptographic controls on the individual data. 
 
@@ -259,9 +259,9 @@ Set-Label `
     -EncryptionRightsDefinitions "my-security-group@contoso.com:VIEW,VIEWRIGHTSDATA,DOCEDIT,EDIT,PRINT,EXTRACT,REPLY,REPLYALL,FORWARD,OBJMODEL"
 ```
 
-Here, we are enabling rights management on our existing label, and ensuring it never expires. We also allow access offline forever once it has been decrypted (your risk appetite may vary here). Finally, through the `EncryptionRightsDefinitions` property, we provide the 'co-owner' privilege to those who are a member of the `my-security-group@contoso.com` group we used in the `New-LabelPolicy` cmdlet above. This way, those who can see the label, are also authorised under rights management to decrypt the content. This co-owner privilege provides allows full rights to the data, except for the ability to permanently remove the encryption.
+Here, we are enabling rights management on our existing label, and ensuring it never expires. We also allow access offline forever once it has been decrypted through a quality `-1` integer. Finally, through the `EncryptionRightsDefinitions` property, we provide the `co-owner` privilege to those who are a member of the `my-security-group@contoso.com` group we used in the `New-LabelPolicy` cmdlet above. This way, those who can see the label, are also authorised under rights management to decrypt the content. This co-owner privilege provides allows full rights to the data, except for the ability to permanently remove the encryption.
 
-That's it, you can apply this new label to your files or email and demonstrate the encryption. Try sharing it with someone who is, and is not a member of the the mail enabled security group. Once will be able to view, the other will not. You will need a [relatively modern version of the Office suite](https://docs.microsoft.com/en-us/microsoft-365/compliance/sensitivity-labels-office-apps) on your respective platform for this to function seamlessly.
+That's it, you can apply this new label to your files or email and demonstrate the encryption. Try sharing it with someone who is, and is not, a member of the mail enabled security group. Once will be able to view, the other will not. You will need a [relatively modern version of the Office suite](https://docs.microsoft.com/en-us/microsoft-365/compliance/sensitivity-labels-office-apps) on your respective platform for this to function seamlessly. You can even co-author, on the fly. The fact the the data is fully encrypted will be seamless to the end user. 
 
 ### Configure the exchange online transport rules to decrypt
 

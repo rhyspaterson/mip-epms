@@ -49,6 +49,7 @@ Please note that currently, this approach is **not** fully compliant with the EP
 - [ ] To do: add additional protective markings (e.g., cabinet) `[code-update]`.
 - [ ] To do: support modifying enabled policies `[code-update]`.
 - [ ] To do: document the email tests `[readme-update]`.
+
 ## Getting started
 
 If you'd like to skip to already-coded-part, check out the [complete provisioning example](https://github.com/rhyspaterson/mip-epms/#complete-provisioning-example). Otherwise, this will step through the approach in provisioning a label and the supporting configuration from scratch.

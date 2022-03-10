@@ -52,7 +52,9 @@ Please note that currently, this approach is **not** fully compliant with the EP
 
 ## Getting started
 
-It is recommended to read the supporting article that steps through the approach in provisioning a label and the supporting configuration from scratch, including it's relevance to the EPMS.  If you've done that and would like to skip to already-coded-part, you've come to the right place. 
+It is recommended to [read the supporting article](https://rhyspaterson.github.io/mip-epms/) that steps through the approach in provisioning a label and the supporting configuration from scratch, including it's relevance to the EPMS. It provides the context and background for this repository. 
+
+If you've done that and would like to skip to already-coded-part, you've come to the right place. 
 
 You'll need a recent version of the [ExchangeOnlineManagement](https://www.powershellgallery.com/packages/ExchangeOnlineManagement) module. Once that is installed, run the `Connect-ExchangeOnline` and `Connect-IPPSSession` to connect to Exchange Online and the Compliance centers, respectively.
 

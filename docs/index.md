@@ -37,11 +37,11 @@ Please note that currently, this approach is **not** fully compliant with the EP
 
 #### Not implemented :facepunch:
 - [ ] When downgrading a sensitivity label, the downgrade can not be prevented, only require justification `[m365-limitation]`.
+- [ ] When appling a sensitivity label with content markings from mail that already has content markings, the content markings are duplicated `[m365-limitation]`.
 - [ ] When manipulating the `x-protective-marking` header, variables cannot be inserted, such as a user principal name `[m365-limitation]`.
 - [ ] When manipulating the `x-protective-marking` header via dlp rules, the new header value cannot exceed 64 characters `[m365-limitation]`.
 - [ ] When manipulating the `x-protective-marking` header via dlp rules, the new header value cannot include special characters `[m365-limitation]`.
 - [ ] Allow the application of sensitivity labels to calendar objects `[m365-limitation]`.
-- [ ] When appling a sensitivity label with content markings from mail that already has content markings, the markings are duplicated `[m365-limitation]`.
 
 #### Other :pray:
 - [ ] To do: clarify inheritance `[readme-update]`.

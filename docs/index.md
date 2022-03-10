@@ -22,7 +22,7 @@ Please note that currently, this approach is **not** fully compliant with the EP
 
 ### Feature status
 
-#### Implemented :love_you_gesture:
+#### Implemented :metal:
 
 - [x] On mail send for Outlook, require a label to be applied if it is missing across all Outlook clients (Windows, Mac, Web, iOS and Android) `[via native client]`.
 - [x] On mail send from a shared or delegated mailbox in Outlook for iOS, a sensitivity label can not be applied `[via native client]`.

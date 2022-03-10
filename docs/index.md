@@ -52,7 +52,7 @@ Please note that currently, this approach is **not** fully compliant with the EP
 
 ## Getting started
 
-If you'd like to skip to already-coded-part, check out the [complete provisioning example](https://github.com/rhyspaterson/mip-epms). Otherwise, this will step through the approach in provisioning a label and the supporting configuration from scratch.
+If you'd like to skip to already-coded-part, check out the [complete provisioning example](https://github.com/rhyspaterson/mip-epms) in the GitHub repository. Otherwise, this will step through the approach in provisioning a label and the supporting configuration from scratch.
 
 You'll need a recent version of the [ExchangeOnlineManagement](https://www.powershellgallery.com/packages/ExchangeOnlineManagement) module. Once that is installed, run the `Connect-ExchangeOnline` and `Connect-IPPSSession` to connect to Exchange Online and the Compliance centers, respectively.
 
@@ -281,3 +281,7 @@ New-TransportRule `
 ```
 
 Here we define a new policy that strips any encryption from mail and attachments, when sent from inside the Exchange organisation to a set of trusted domains.
+
+## What next?
+
+It's time to pump out the rest of the labels! Check out the [complete provisioning example](https://github.com/rhyspaterson/mip-epms) in the GitHub repository. If you'd like to step through things manually, you can leverage the [functioning label configuration](https://github.com/rhyspaterson/mip-epms/blob/master/examples/functions/configuration.ps1) to use as a reference point.

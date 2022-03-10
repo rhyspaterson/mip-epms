@@ -47,12 +47,8 @@ Please note that currently, this approach is **not** fully compliant with the EP
 - [ ] To do: clarify inheritance `[readme-update]`.
 - [ ] To do: fix parent label display names `[readme-update, code-update]`.
 - [ ] To do: add additional protective markings (e.g., cabinet) `[code-update]`.
-- [ ] To do: add encryption steps `[readme-update, code-update]`.
 - [ ] To do: support modifying enabled policies `[code-update]`.
 - [ ] To do: document the email tests `[readme-update]`.
-- [ ] To do: standardise rule names to prefix with 'EPMS -' and allow a smarter delete `[code-update]`.
-- [ ] To do: standardise the use of the label names/guids/display names in the rules `[code-update]`.
-
 ## Getting started
 
 If you'd like to skip to already-coded-part, check out the [complete provisioning example](https://github.com/rhyspaterson/mip-epms/#complete-provisioning-example). Otherwise, this will step through the approach in provisioning a label and the supporting configuration from scratch.

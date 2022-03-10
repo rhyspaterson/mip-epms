@@ -77,7 +77,7 @@ function Assert-GraphConnection {
         [string] $Tenant
     ) 
 
-    Write-Log "Removing any existing Graph connections."
+    Write-Log -Message "Removing any existing Graph connections."
 
     Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
     

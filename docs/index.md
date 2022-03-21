@@ -255,14 +255,16 @@ Set-Label `
     -Identity "<my-new-label-guid>" `
     -EncryptionEnabled $true `
     -EncryptionContentExpiredOnDateInDaysOrNever 'Never' `
-    -EncryptionOfflineAccessDays '-1' `
+    -EncryptionOfflineAccessDays '30' `
     -EncryptionProtectionType 'Template' `
     -EncryptionRightsDefinitions "my-security-group@contoso.com:VIEW,VIEWRIGHTSDATA,DOCEDIT,EDIT,PRINT,EXTRACT,REPLY,REPLYALL,FORWARD,OBJMODEL"
 ```
 
-Here, we are enabling rights management, or encryption, on our existing label, and ensuring the rights never expire. We also allow access offline forever once it has been decrypted through a quality `-1` integer. Finally, through the elaborate `EncryptionRightsDefinitions` property, we provide the `co-owner` privilege to those who are a member of the `my-security-group@contoso.com` group we used in the `New-LabelPolicy` cmdlet above. This way, those who can see the label, are also authorised under rights management to decrypt the content. This co-owner privilege provides allows full rights to the data, except for the ability to permanently remove the encryption.
+Here, we are enabling rights management, or encryption, on our existing label, and ensuring the rights never expire. We also enable offline access for 30 days, which is [the default behaviour](https://docs.microsoft.com/en-us/microsoft-365/compliance/encryption-sensitivity-labels?view=o365-worldwide#rights-management-use-license-for-offline-access) and it sounds like a sensible one at that. Finally, through the elaborate `EncryptionRightsDefinitions` property, we provide the `co-owner` privilege to those who are a member of the `my-security-group@contoso.com` group we used in the `New-LabelPolicy` cmdlet above. This way, those who can see the label, are also authorised under rights management to decrypt the content. This co-owner privilege provides allows full rights to the data, except for the ability to permanently remove the encryption.
 
 That's it! You can apply this new label to your files or email and demonstrate the encryption. Try sharing it with someone who is, and is not, a member of the mail enabled security group. Once will be able to view, the other will not. You will need a [relatively modern version of the Office suite](https://docs.microsoft.com/en-us/microsoft-365/compliance/sensitivity-labels-office-apps) on your respective platform for this to function seamlessly. You can even co-author, on the fly. The fact the the data is fully encrypted will be seamless to the end user. 
+
+A consideration for the offline access approach is one of usability. In a 'dial it to 11' zero trust mindset, we may disable offline access entirely as we consider the device hostile, so we leverage the `EncryptionContentExpiredOnDateInDaysOrNever` flag and set it to `0`. However, it does mean you end users are then unable to ever view the labelled content without a network connection. You could also enable offline access forever via the quality `-1` integer, if we have full trust in the device or other compensating controls.
 
 ### Configure the exchange online transport rules to decrypt
 

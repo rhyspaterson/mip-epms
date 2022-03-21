@@ -3,6 +3,8 @@ The regular expression engine afforded to us within Microsoft 365 oeprates with 
 The most important being that variable length lookaheads are not supported (e.g: .*, or .+)
 Therefore we must assume the whitespaces are commas as defined in the specificaiton are adhered to (e.g., no variable whitespace).
 Currently escpaing commas as unicode as the engine did not like that, either.
+
+An opinionated approach is that IMMs contain hyphens in the EPMS approach marking, and in other visual markings they are not hyphenated.
 #>
 
 function Get-EPMSLabels {
@@ -62,7 +64,7 @@ function Get-EPMSLabels {
             HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Legal-Privilege, ORIGIN={{UPN}}"
             SubjectRegex        = "(?im)(sec=official:sensitive\u002C\saccess=legal-privilege)"
             SubjectExample      = "[SEC=OFFICIAL:Sensitive, ACCESS=Legal-Privilege]"   
-            DocumentMarkingText = "OFFICIAL:Sensitive//Legal-Privilege"         
+            DocumentMarkingText = "OFFICIAL:Sensitive//Legal Privilege"         
             ParentLabel         = "OFFICIAL [Parent]"
             Hierarchy           = "HasParent"
             Encrypted           = $false
@@ -70,13 +72,13 @@ function Get-EPMSLabels {
         }         
         [PSCustomObject]@{
             Identifier          = 'official-sensitive-ls'
-            LabelDisplayName    = "OFFICIAL - Sensitive - Legislative-Secrecy"
+            LabelDisplayName    = "OFFICIAL - Sensitive - Legislative Secrecy"
             Tooltip             = "Limited damage to an individual, organisation or government generally if compromised. Restrictions on access to, or use of, information covered by specific legislative secrecy provisions."
             HeaderRegex         = "(?im)(sec=official:sensitive\u002C\saccess=legislative-secrecy)"
             HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Legislative-Secrecy, ORIGIN={{UPN}}"
             SubjectRegex        = "(?im)(sec=official:sensitive\u002C\saccess=legislative-secrecy)"
             SubjectExample      = "[SEC=OFFICIAL:Sensitive, ACCESS=Legislative-Secrecy]"   
-            DocumentMarkingText = "OFFICIAL:Sensitive//Legislative-Secrecy"         
+            DocumentMarkingText = "OFFICIAL:Sensitive//Legislative Secrecy"         
             ParentLabel         = "OFFICIAL [Parent]"
             Hierarchy           = "HasParent"
             Encrypted           = $false
@@ -90,7 +92,7 @@ function Get-EPMSLabels {
             HeaderExample       = "VER=2018.3, NS=gov.au, SEC=OFFICIAL:Sensitive, ACCESS=Personal-Privacy, ORIGIN={{UPN}}"
             SubjectRegex        = "(?im)(sec=official:sensitive\u002C\saccess=personal-privacy)"
             SubjectExample      = "[SEC=OFFICIAL:Sensitive, ACCESS=Personal-Privacy]"     
-            DocumentMarkingText = "OFFICIAL:Sensitive//Personal-Privacy"
+            DocumentMarkingText = "OFFICIAL:Sensitive//Personal Privacy"
             ParentLabel         = "OFFICIAL [Parent]"
             Hierarchy           = "HasParent"
             Encrypted           = $false
@@ -118,13 +120,13 @@ function Get-EPMSLabels {
         }
         [PSCustomObject]@{
             Identifier          = 'protected-lp'
-            LabelDisplayName    = "PROTECTED - Legal-Privilege"
+            LabelDisplayName    = "PROTECTED - Legal Privilege"
             Tooltip             = "High business impact. Damage to the national interest, organisations or individuals. Restrictions on access to, or use of, information covered by legal professional privilege."
             HeaderRegex         = "(?im)(sec=protected\u002C\saccess=legal-privilege)"
             HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ACCESS=Legal-Privilege, ORIGIN={{UPN}}"
             SubjectRegex        = "(?im)(sec=protected\u002C\saccess=legal-privilege)"
             SubjectExample      = "[SEC=PROTECTED, ACCESS=Legal-Privilege]"    
-            DocumentMarkingText = "PROTECTED//Legal-Privilege"      
+            DocumentMarkingText = "PROTECTED//Legal Privilege"      
             Hierarchy           = "HasParent"
             ParentLabel         = "PROTECTED [Parent]"
             Encrypted           = $true
@@ -132,13 +134,13 @@ function Get-EPMSLabels {
         }
         [PSCustomObject]@{
             Identifier          = 'protected-ls'
-            LabelDisplayName    = "PROTECTED - Legislative-Secrecy"
+            LabelDisplayName    = "PROTECTED - Legislative Secrecy"
             Tooltip             = "High business impact. Damage to the national interest, organisations or individuals. Restrictions on access to, or use of, information covered by specific legislative secrecy provisions."
             HeaderRegex         = "(?im)(sec=protected\u002C\saccess=legislative-secrecy)"
             HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ACCESS=Legislative-Secrecy, ORIGIN={{UPN}}"
             SubjectRegex        = "(?im)(sec=protected\u002C\saccess=legislative-secrecy)"
             SubjectExample      = "[SEC=PROTECTED, ACCESS=Legislative-Secrecy]"    
-            DocumentMarkingText = "PROTECTED//Legislative-Secrecy"      
+            DocumentMarkingText = "PROTECTED//Legislative Secrecy"      
             Hierarchy           = "HasParent"
             ParentLabel         = "PROTECTED [Parent]"
             Encrypted           = $true
@@ -146,13 +148,13 @@ function Get-EPMSLabels {
         }
         [PSCustomObject]@{
             Identifier          = 'protected-pp'
-            LabelDisplayName    = "PROTECTED - Personal-Privacy"
+            LabelDisplayName    = "PROTECTED - Personal Privacy"
             Tooltip             = "High business impact. Damage to the national interest, organisations or individuals. Restrictions under the Privacy Act on access to, or use of, personal information collected for business purposes."
             HeaderRegex         = "(?im)(sec=protected\u002C\saccess=personal-privacy)"
             HeaderExample       = "VER=2018.3, NS=gov.au, SEC=PROTECTED, ACCESS=Personal-Privacy, ORIGIN={{UPN}}"
             SubjectRegex        = "(?im)(sec=protected\u002C\saccess=personal-privacy)"
             SubjectExample      = "[SEC=PROTECTED, ACCESS=Personal-Privacy]"    
-            DocumentMarkingText = "PROTECTED//Personal-Privacy"      
+            DocumentMarkingText = "PROTECTED//Personal Privacy"      
             Hierarchy           = "HasParent"
             ParentLabel         = "PROTECTED [Parent]"
             Encrypted           = $true

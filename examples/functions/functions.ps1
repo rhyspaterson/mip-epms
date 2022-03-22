@@ -247,7 +247,7 @@ function Assert-LabelEncryption {
         -Identity $deployedLabel.Guid `
         -EncryptionEnabled $true `
         -EncryptionContentExpiredOnDateInDaysOrNever 'Never' `
-        -EncryptionOfflineAccessDays '-1' `
+        -EncryptionOfflineAccessDays '30' `
         -EncryptionProtectionType 'Template' `
         -EncryptionRightsDefinitions "$($distributionGroup.PrimarySmtpAddress):VIEW,VIEWRIGHTSDATA,DOCEDIT,EDIT,PRINT,EXTRACT,REPLY,REPLYALL,FORWARD,OBJMODEL"
 }

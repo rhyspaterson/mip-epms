@@ -56,7 +56,7 @@ Please note that currently, this approach is **not** fully compliant with the EP
 
 If you'd like to skip to already-coded-part, check out the [complete provisioning example](https://github.com/rhyspaterson/mip-epms) in the GitHub repository. Otherwise, this will step through the approach in provisioning a label and the supporting configuration from scratch.
 
-You'll need a recent version of the [ExchangeOnlineManagement](https://www.powershellgallery.com/packages/ExchangeOnlineManagement) module. Once that is installed, run the `Connect-ExchangeOnline` and `Connect-IPPSSession` to connect to Exchange Online and the Compliance centers, respectively.
+You'll need to update to the latest [ExchangeOnlineManagement](https://www.powershellgallery.com/packages/ExchangeOnlineManagement) module and also throw the `-AllowPrerelease` flag. Once that is installed, run the `Connect-ExchangeOnline` and `Connect-IPPSSession` to connect to Exchange Online and the Compliance centers, respectively.
 
 **Note**: if you are in an older or temporary tenant, [ensure you have set](https://docs.microsoft.com/en-us/azure/active-directory/enterprise-users/groups-settings-cmdlets) the `EnableMIPLabels = true` directory setting, run `Execute-AzureAdLabelSync` and [enabled consent for Azure Purview](https://docs.microsoft.com/en-us/azure/purview/how-to-automatically-label-your-content#step-2-consent-to-use-sensitivity-labels-in-azure-purview). 
 

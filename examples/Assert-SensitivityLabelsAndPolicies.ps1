@@ -52,7 +52,7 @@ if ($RemoveExistingLabelsAndPolicies) {
 if ($WaitForPendingDeletions) {
     Write-Log -Message "Waiting for pending label and policy deletions. This can take a very long time."
     $deletionStatus = Get-PendingLabelAndPolicyDeletionStatus
-    while ($deletionStatus -ne 'complete') {
+    while ($deletionStatus -ne 'completed') {
         $deletionStatus = Get-PendingLabelAndPolicyDeletionStatus
         Write-Log -Message "Deletion status still pending. Querying again in 30 seconds."
         Start-Sleep 30

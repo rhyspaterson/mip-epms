@@ -74,21 +74,21 @@ Let's [create a label](https://docs.microsoft.com/en-us/powershell/module/exchan
 
 ```powershell
 $label = New-Label `
-    -DisplayName 'UNOFFICIAL' `
-    -Name $(New-Guid) `
-    -Comment 'Provides EPMS support in Microsoft 365' `
-    -Tooltip 'No damage. This information does not form part of official duty.' `
+    -DisplayName "UNOFFICIAL" `
+    -Name "$(New-Guid)" `
+    -Comment "Provides EPMS support in Microsoft 365" `
+    -Tooltip "No damage. This information does not form part of official duty." `
     -ApplyContentMarkingFooterEnabled $true `
-    -ApplyContentMarkingFooterAlignment 'Center' `
-    -ApplyContentMarkingFooterText 'UNOFFICIAL' `
+    -ApplyContentMarkingFooterAlignment "Center" `
+    -ApplyContentMarkingFooterText "UNOFFICIAL" `
     -ApplyContentMarkingFooterFontSize 12 `
-    -ApplyContentMarkingFooterFontColor '#ef233c' `
+    -ApplyContentMarkingFooterFontColor "#ef233c" `
     -ApplyContentMarkingHeaderEnabled $true `
-    -ApplyContentMarkingHeaderAlignment 'Center' `
-    -ApplyContentMarkingHeaderText 'UNOFFICIAL' `
+    -ApplyContentMarkingHeaderAlignment "Center" `
+    -ApplyContentMarkingHeaderText "UNOFFICIAL" `
     -ApplyContentMarkingHeaderFontSize 12 `
-    -ApplyContentMarkingHeaderFontColor '#ef233c' `
-    -ContentType 'File, Email, Site, UnifiedGroup, PurviewAssets'
+    -ApplyContentMarkingHeaderFontColor "#ef233c" `
+    -ContentType "File, Email, Site, UnifiedGroup, PurviewAssets"
 ```
 
 Here we are defining the display name and guidance for those leveraging it. We generate a random GUID for the name, as our label purpose may change in the future. We're also enabling content marking, and making it available to all of our files and emails, our SharePoint sites and modern groups, and even Azure Purview. We want to use this label everywhere, so we can bank the benefits of integrated data classification. Now we just need to deploy it.
@@ -97,9 +97,9 @@ Then, we [create a new label policy](https://docs.microsoft.com/en-us/powershell
 
 ```powershell
 New-LabelPolicy `
-    -Name 'Deploy labels to all staff'`
+    -Name "Deploy labels to all staff" `
     -Labels $label.name `
-    -ExchangeLocation 'All' `
+    -ExchangeLocation "All" `
     -Settings @{
         powerbimandatory = $true
         requiredowngradejustification = $true
@@ -120,8 +120,8 @@ First, [we deploy an auto-labelling policy](https://docs.microsoft.com/en-us/pow
 ```powershell
 $policy = New-AutoSensitivityLabelPolicy `
     -Name "Auto-label 'unofficial' mail" `
-    -ApplySensitivityLabel $($label.Guid) `
-    -ExchangeLocation 'All' `
+    -ApplySensitivityLabel "$($label.Guid)" `
+    -ExchangeLocation "All" `
     -OverwriteLabel $true `
     -Mode 'TestWithoutNotifications'
 ```
@@ -135,7 +135,7 @@ New-AutoSensitivityLabelRule `
     -Name "Detect x-header for 'unofficial'" `
     -HeaderMatchesPatterns @{"x-protective-marking" = "(?im)sec=unofficial\u002C"} `
     -Workload "Exchange" `
-    -Policy $($policy.name)
+    -Policy "$($policy.name)"
 ```
 
 We leverage regular expressions to pattern match our classification in the x-header of the mail, and associate with the previous policy. For those new to the wild world of regular expressions, here we are saying:
@@ -157,8 +157,8 @@ First, [we define a dlp policy](https://docs.microsoft.com/en-us/powershell/modu
 ```powershell
 $policy = New-DlpCompliancePolicy `
     -Name "Subject append 'unofficial' mail" `
-    -ExchangeLocation 'All' `
-    -Mode 'TestWithoutNotifications'
+    -ExchangeLocation "All" `
+    -Mode "TestWithoutNotifications"
 ```
 
 Here we define a new policy that applies everywhere in Exchange and sets the `mode` to `TestWithoutNotifications`. This allows us to deploy the policy but simulate the result without actually modifying the subject line. Once we're happy, we can shift the `mode` to `Enable`.
@@ -197,7 +197,7 @@ New-DlpComplianceRule `
     -Name "If 'unofficial', append subject" `
     -Policy $($policy.name) `
     -ContentContainsSensitiveInformation $complexSensitiveInformationRule `
-    -ModifySubject $complexModifySubjectRule `
+    -ModifySubject $complexModifySubjectRule
 ```
 
 This is a bit more advanced. First, we define the `PswsHashtable` for `ContentContainsSensitiveInformation`. This is a nested hashtable that defines the logic to fire any time a label with a given name is seen. We are re-using the `$label.name` attribute we generated previously. 
@@ -219,11 +219,11 @@ Note that in both the dlp and etr approaches, we currently cannot insert a dynam
 ```powershell
 New-TransportRule `
     -Name "Insert x-header for 'unofficial'" `
-    -HeaderMatchesMessageHeader 'msip_labels' `
+    -HeaderMatchesMessageHeader "msip_labels" `
     -HeaderMatchesPatterns "(?im)$($label.guid)" `
-    -SetHeaderName 'x-protective-marking' `
-    -SetHeaderValue 'VER=2018.4, NS=gov.au, SEC=UNOFFICIAL, ORIGIN=transport-rule@contoso.com' `
-    -Mode 'Audit'
+    -SetHeaderName "x-protective-marking" `
+    -SetHeaderValue "VER=2018.4, NS=gov.au, SEC=UNOFFICIAL, ORIGIN=transport-rule@contoso.com" `
+    -Mode "Audit"
 ```
 
 Here we define a new transport rule that queries the `msip_labels` x-header for the guid of our label. If it's there, then write the supporting `x-protective-marking` header and off we go. The `msip_labels` is an internal header written by MIP when a label is applied to mail. We leverage regular expressions to pattern match our sensitivity label guid using this header. Here we are saying:
@@ -254,9 +254,9 @@ We're going to use a new label to demonstrate this capability. Repeating the abo
 Set-Label `
     -Identity "<my-new-label-guid>" `
     -EncryptionEnabled $true `
-    -EncryptionContentExpiredOnDateInDaysOrNever 'Never' `
-    -EncryptionOfflineAccessDays '30' `
-    -EncryptionProtectionType 'Template' `
+    -EncryptionContentExpiredOnDateInDaysOrNever "Never" `
+    -EncryptionOfflineAccessDays "30" `
+    -EncryptionProtectionType "Template" `
     -EncryptionRightsDefinitions "my-security-group@contoso.com:VIEW,VIEWRIGHTSDATA,DOCEDIT,EDIT,PRINT,EXTRACT,REPLY,REPLYALL,FORWARD,OBJMODEL"
 ```
 
@@ -276,12 +276,11 @@ We achieve this by [defining a new transport rule policy](https://docs.microsoft
 
 ```powershell
 New-TransportRule `
-    -Name 'Strip encryption for outgoing emails and attachments to trusted domains'`
-    -FromScope 'InOrganization' `
-    -RecipientDomainIs @('contoso-1.com', 'contoso-2.com') `
+    -Name "Strip encryption for outgoing emails and attachments to trusted domains"`
+    -FromScope "InOrganization" `
+    -RecipientDomainIs @("contoso-1.com", "contoso-2.com") `
     -RemoveOMEv2 $true `
-    -RemoveRMSAttachmentEncryption $true    
-}
+    -RemoveRMSAttachmentEncryption $true
 ```
 
 Here we define a new policy that strips any encryption from mail and attachments, when sent from inside the Exchange organisation to a set of trusted domains.

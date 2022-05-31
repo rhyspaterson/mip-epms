@@ -75,8 +75,8 @@ Let's [create a label](https://docs.microsoft.com/en-us/powershell/module/exchan
 ```powershell
 $label = New-Label `
     -DisplayName "UNOFFICIAL" `
-    -Name "$(New-Guid)" `
-    -Comment "Provides EPMS support in Microsoft 365" `
+    -Name "$(New-Guid).Guid" `
+    -Comment "Provides EPMS support in Microsoft 365." `
     -Tooltip "No damage. This information does not form part of official duty." `
     -ApplyContentMarkingFooterEnabled $true `
     -ApplyContentMarkingFooterAlignment "Center" `
@@ -98,7 +98,7 @@ Then, we [create a new label policy](https://docs.microsoft.com/en-us/powershell
 ```powershell
 New-LabelPolicy `
     -Name "Deploy labels to all staff" `
-    -Labels $label.name `
+    -Labels "$($label.name)" `
     -ExchangeLocation "All" `
     -Settings @{
         powerbimandatory = $true
@@ -195,7 +195,7 @@ $complexModifySubjectRule = @{
 # Create the policy
 New-DlpComplianceRule `
     -Name "If 'unofficial', append subject" `
-    -Policy $($policy.name) `
+    -Policy "$($policy.name)" `
     -ContentContainsSensitiveInformation $complexSensitiveInformationRule `
     -ModifySubject $complexModifySubjectRule
 ```
